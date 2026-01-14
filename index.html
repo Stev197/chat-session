@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App - WhatsApp Clone</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-color: #25D366;
+            --secondary-color: #128C7E;
+            --light-green: #DCF8C6;
+            --light-gray: #ECE5DD;
+            --medium-gray: #DDD;
+            --dark-gray: #4A4A4A;
+            --white: #FFFFFF;
+            --shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            height: 90vh;
+            background-color: var(--white);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Styles */
+        .header {
+            background-color: var(--secondary-color);
+            color: var(--white);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo i {
+            font-size: 24px;
+        }
+
+        .logo h1 {
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--light-gray);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background-color: #1da851;
+        }
+
+        .btn-secondary {
+            background-color: var(--white);
+            color: var(--secondary-color);
+            border: 1px solid var(--secondary-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: #f0f0f0;
+        }
+
+        .btn-danger {
+            background-color: #FF3B30;
+            color: var(--white);
+        }
+
+        .btn-danger:hover {
+            background-color: #d32f2f;
+        }
+
+        /* Page Styles */
+        .page {
+            display: none;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .page.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Login Page */
+        .login-container {
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            flex: 1;
+        }
+
+        .login-logo {
+            font-size: 60px;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .login-form {
+            width: 100%;
+            max-width: 400px;
+            background-color: var(--white);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-gray);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--medium-gray);
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .login-options {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* Admin Panel */
+        .admin-container {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .admin-section {
+            background-color: var(--white);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .admin-section h3 {
+            margin-bottom: 15px;
+            color: var(--secondary-color);
+            border-bottom: 1px solid var(--medium-gray);
+            padding-bottom: 10px;
+        }
+
+        .session-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .session-code {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--secondary-color);
+            letter-spacing: 3px;
+            background-color: var(--light-gray);
+            padding: 10px 15px;
+            border-radius: 5px;
+        }
+
+        .friends-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .friend-item {
+            background-color: var(--light-gray);
+            padding: 10px 15px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .friend-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: var(--secondary-color);
+            color: var(--white);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .friend-name {
+            font-weight: 500;
+        }
+
+        .add-friend-form {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        /* Chat Page */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .chat-header {
+            background-color: var(--light-gray);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+
+        .chat-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .chat-info .user-avatar {
+            background-color: var(--secondary-color);
+            color: var(--white);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: var(--light-gray);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='%23c0c0c0' fill-opacity='0.1'%3E%3Cpath d='M0 0h40v40H0V0zm40 40h40v40H40V40zm0-40h2l-2 2V0zm0 4l4-4h2l-6 6V4zm0 4l8-8h2l-10 10V8zm0 4L52 0h2L42 16v-2zm0 4L56 0h2L44 20v-2zm0 4L60 0h2L46 24v-2zm0 4L64 0h2L48 28v-2zm0 4L68 0h2L50 32v-2zm0 4L72 0h2L52 36v-2zm0 4L76 0h2L54 40v-2zm0 4L80 0v2L56 44v-2z'/%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .message {
+            max-width: 70%;
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 10px;
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        .message-sent {
+            background-color: var(--light-green);
+            margin-left: auto;
+            border-top-right-radius: 0;
+        }
+
+        .message-received {
+            background-color: var(--white);
+            margin-right: auto;
+            border-top-left-radius: 0;
+        }
+
+        .message-sender {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 5px;
+            color: var(--secondary-color);
+        }
+
+        .message-content {
+            margin-bottom: 5px;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: #888;
+            text-align: right;
+        }
+
+        .message-image, .message-video {
+            max-width: 100%;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+
+        .message-actions {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            display: none;
+        }
+
+        .message:hover .message-actions {
+            display: block;
+        }
+
+        .chat-input-container {
+            padding: 15px 20px;
+            background-color: var(--light-gray);
+            border-top: 1px solid var(--medium-gray);
+            display: flex;
+            gap: 10px;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid var(--medium-gray);
+            border-radius: 25px;
+            font-size: 16px;
+        }
+
+        .message-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .input-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: none;
+            background-color: var(--white);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            color: var(--dark-gray);
+            font-size: 20px;
+        }
+
+        .input-btn:hover {
+            background-color: var(--medium-gray);
+        }
+
+        .input-btn.send {
+            background-color: var(--primary-color);
+            color: var(--white);
+        }
+
+        .input-btn.send:hover {
+            background-color: var(--secondary-color);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--white);
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--medium-gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid var(--medium-gray);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--dark-gray);
+        }
+
+        /* PIN Input Styles */
+        .pin-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .pin-input {
+            width: 50px;
+            height: 60px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            border: 2px solid var(--medium-gray);
+            border-radius: 8px;
+            outline: none;
+        }
+
+        .pin-input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .pin-input.filled {
+            border-color: var(--primary-color);
+            background-color: rgba(37, 211, 102, 0.1);
+        }
+
+        .pin-keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .pin-key {
+            height: 60px;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--light-gray);
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .pin-key:hover {
+            background-color: var(--medium-gray);
+        }
+
+        .pin-key:active {
+            transform: scale(0.95);
+        }
+
+        .pin-key.delete {
+            background-color: #ff6b6b;
+            color: white;
+        }
+
+        .pin-key.delete:hover {
+            background-color: #ff5252;
+        }
+
+        .pin-key.clear {
+            background-color: #ffa726;
+            color: white;
+        }
+
+        .pin-key.clear:hover {
+            background-color: #ff9800;
+        }
+
+        .pin-key.submit {
+            background-color: var(--primary-color);
+            color: white;
+            grid-column: span 2;
+        }
+
+        .pin-key.submit:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .pin-message {
+            text-align: center;
+            margin-top: 15px;
+            min-height: 24px;
+        }
+
+        .pin-success {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .pin-error {
+            color: #ff3b30;
+            font-weight: bold;
+        }
+
+        /* Loading Spinner */
+        .loading {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--light-gray);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Status Messages */
+        .status-message {
+            padding: 10px 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                height: 95vh;
+            }
+            
+            .header {
+                padding: 12px 15px;
+            }
+            
+            .logo h1 {
+                font-size: 18px;
+            }
+            
+            .session-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .add-friend-form {
+                flex-direction: column;
+            }
+            
+            .chat-input-container {
+                padding: 10px 15px;
+            }
+            
+            .message {
+                max-width: 85%;
+            }
+            
+            .pin-input {
+                width: 40px;
+                height: 50px;
+                font-size: 20px;
+            }
+            
+            .pin-key {
+                height: 50px;
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <i class="fab fa-whatsapp"></i>
+                <h1>ChatApp</h1>
+            </div>
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <div id="userName">User</div>
+                <button class="btn btn-secondary btn-sm" id="logoutBtn">Logout</button>
+            </div>
+        </div>
+
+        <!-- Login Page -->
+        <div class="page active" id="loginPage">
+            <div class="login-container">
+                <div class="login-logo">
+                    <i class="fab fa-whatsapp"></i>
+                </div>
+                <div class="login-form">
+                    <h2>Selamat Datang di ChatApp</h2>
+                    <p style="margin: 15px 0; color: var(--dark-gray);">Masuk ke sesi chat dengan kode atau buat sesi baru sebagai admin</p>
+                    
+                    <div class="form-group">
+                        <label for="sessionCode">Kode Sesi Chat</label>
+                        <input type="text" id="sessionCode" class="form-control" placeholder="Masukkan kode sesi (contoh: ABC123)" maxlength="6">
+                    </div>
+                    
+                    <div class="login-options">
+                        <button class="btn btn-primary" id="joinSessionBtn">Masuk ke Sesi</button>
+                        <button class="btn btn-secondary" id="adminLoginBtn">Admin Panel</button>
+                    </div>
+                    
+                    <div class="loading" id="loginLoading">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Panel -->
+        <div class="page" id="adminPage">
+            <div class="admin-container">
+                <div class="admin-section">
+                    <h3>Buat Sesi Chat Baru</h3>
+                    <div class="session-info">
+                        <div>
+                            <p>Kode sesi saat ini:</p>
+                            <div class="session-code" id="currentSessionCode">ABC123</div>
+                        </div>
+                        <button class="btn btn-primary" id="generateSessionBtn">Buat Kode Baru</button>
+                    </div>
+                    <p>Bagikan kode ini dengan teman-teman Anda untuk bergabung dalam sesi chat yang sama.</p>
+                </div>
+                
+                <div class="admin-section">
+                    <h3>Kelola Teman dalam Sesi</h3>
+                    <p>Tambah teman yang bisa bergabung dalam sesi chat ini:</p>
+                    
+                    <div class="add-friend-form">
+                        <input type="text" id="friendName" class="form-control" placeholder="Nama teman">
+                        <button class="btn btn-primary" id="addFriendBtn">Tambah Teman</button>
+                    </div>
+                    
+                    <h4 style="margin-top: 20px;">Daftar Teman dalam Sesi</h4>
+                    <div class="friends-list" id="friendsList">
+                        <!-- Friends will be added here dynamically -->
+                    </div>
+                </div>
+                
+                <div class="admin-section">
+                    <h3>Mulai Chat</h3>
+                    <p>Setelah menambahkan teman, Anda bisa memulai chat dengan bergabung ke sesi.</p>
+                    <button class="btn btn-primary" id="joinAsAdminBtn">Bergabung ke Chat</button>
+                </div>
+                
+                <div class="loading" id="adminLoading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Page -->
+        <div class="page" id="chatPage">
+            <div class="chat-container">
+                <div class="chat-header">
+                    <div class="chat-info">
+                        <div class="user-avatar">GC</div>
+                        <div>
+                            <h3>Sesi: <span id="sessionName">ABC123</span></h3>
+                            <p id="onlineCount">0 orang online</p>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="btn btn-secondary" id="leaveSessionBtn">Tinggalkan Sesi</button>
+                    </div>
+                </div>
+                
+                <div class="chat-messages" id="chatMessages">
+                    <!-- Messages will be added here dynamically -->
+                </div>
+                
+                <div class="chat-input-container">
+                    <input type="text" class="message-input" id="messageInput" placeholder="Ketik pesan...">
+                    <div class="input-actions">
+                        <button class="input-btn" id="attachImageBtn" title="Lampirkan Gambar">
+                            <i class="fas fa-image"></i>
+                        </button>
+                        <button class="input-btn" id="attachVideoBtn" title="Lampirkan Video">
+                            <i class="fas fa-video"></i>
+                        </button>
+                        <button class="input-btn send" id="sendMessageBtn" title="Kirim Pesan">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="loading" id="chatLoading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for file attachment -->
+    <div class="modal" id="attachmentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Lampirkan File</h3>
+                <button class="close-modal" id="closeModalBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="attachmentType">Jenis Lampiran</label>
+                    <select id="attachmentType" class="form-control">
+                        <option value="image">Gambar</option>
+                        <option value="video">Video</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="attachmentUrl">URL File</label>
+                    <input type="text" id="attachmentUrl" class="form-control" placeholder="Masukkan URL gambar/video">
+                    <small>Contoh: https://example.com/image.jpg</small>
+                </div>
+                <div class="form-group">
+                    <p>Atau gunakan contoh:</p>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <button class="btn btn-secondary" id="useSampleImage">Gambar Contoh</button>
+                        <button class="btn btn-secondary" id="useSampleVideo">Video Contoh</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelAttachmentBtn">Batal</button>
+                <button class="btn btn-primary" id="addAttachmentBtn">Tambahkan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for PIN entry -->
+    <div class="modal" id="pinModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Masukkan PIN Admin</h3>
+                <button class="close-modal" id="closePinModalBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="text-align: center; margin-bottom: 20px;">Masukkan 4-digit PIN untuk mengakses admin panel</p>
+                
+                <div class="pin-container">
+                    <input type="password" class="pin-input" id="pinDigit1" maxlength="1" data-index="0" readonly>
+                    <input type="password" class="pin-input" id="pinDigit2" maxlength="1" data-index="1" readonly>
+                    <input type="password" class="pin-input" id="pinDigit3" maxlength="1" data-index="2" readonly>
+                    <input type="password" class="pin-input" id="pinDigit4" maxlength="1" data-index="3" readonly>
+                </div>
+                
+                <div class="pin-message" id="pinMessage"></div>
+                
+                <div class="pin-keypad">
+                    <button class="pin-key" data-value="1">1</button>
+                    <button class="pin-key" data-value="2">2</button>
+                    <button class="pin-key" data-value="3">3</button>
+                    <button class="pin-key" data-value="4">4</button>
+                    <button class="pin-key" data-value="5">5</button>
+                    <button class="pin-key" data-value="6">6</button>
+                    <button class="pin-key" data-value="7">7</button>
+                    <button class="pin-key" data-value="8">8</button>
+                    <button class="pin-key" data-value="9">9</button>
+                    <button class="pin-key clear" id="clearPinBtn">C</button>
+                    <button class="pin-key" data-value="0">0</button>
+                    <button class="pin-key delete" id="deletePinBtn">
+                        <i class="fas fa-backspace"></i>
+                    </button>
+                </div>
+                
+                <div style="margin-top: 20px; text-align: center;">
+                    <button class="btn btn-primary" id="submitPinBtn" style="width: 100%;">Masuk ke Admin Panel</button>
+                </div>
+                
+                <div class="pin-message" style="margin-top: 15px; font-size: 14px; color: #666;">
+                    <p>PIN default: <strong>8896</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============== FIREBASE CONFIGURATION ==============
+        // Replace with your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBcixy1PyYTi_krRYUmz8LcvHHxtN5o92w",
+            authDomain: "data-penting-c2e60.firebaseapp.com",
+            databaseURL: "https://chat-9f7d2-default-rtdb.firebaseio.com/",
+            projectId: "data-penting-c2e60",
+            storageBucket: "data-penting-c2e60.firebasestorage.app",
+            messagingSenderId: "805016544678",
+            appId: "1:805016544678:web:aaeb2bef3d6db7786f1b67"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        // ============== STATE MANAGEMENT ==============
+        let currentPage = 'loginPage';
+        let currentSessionCode = '';
+        let currentUser = '';
+        let friends = [];
+        let messages = [];
+        let currentAttachmentType = '';
+        let isAdmin = false;
+        let adminPin = '8896'; // Default PIN
+        let pinInput = ['', '', '', ''];
+        let currentPinIndex = 0;
+        let sessionRef = null;
+        let messagesRef = null;
+        let friendsRef = null;
+        let usersRef = null;
+
+        // ============== DOM ELEMENTS ==============
+        const loginPage = document.getElementById('loginPage');
+        const adminPage = document.getElementById('adminPage');
+        const chatPage = document.getElementById('chatPage');
+        const sessionCodeInput = document.getElementById('sessionCode');
+        const joinSessionBtn = document.getElementById('joinSessionBtn');
+        const adminLoginBtn = document.getElementById('adminLoginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const generateSessionBtn = document.getElementById('generateSessionBtn');
+        const currentSessionCodeEl = document.getElementById('currentSessionCode');
+        const friendNameInput = document.getElementById('friendName');
+        const addFriendBtn = document.getElementById('addFriendBtn');
+        const friendsList = document.getElementById('friendsList');
+        const joinAsAdminBtn = document.getElementById('joinAsAdminBtn');
+        const sessionNameEl = document.getElementById('sessionName');
+        const onlineCountEl = document.getElementById('onlineCount');
+        const chatMessages = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+        const sendMessageBtn = document.getElementById('sendMessageBtn');
+        const attachImageBtn = document.getElementById('attachImageBtn');
+        const attachVideoBtn = document.getElementById('attachVideoBtn');
+        const leaveSessionBtn = document.getElementById('leaveSessionBtn');
+        const attachmentModal = document.getElementById('attachmentModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const cancelAttachmentBtn = document.getElementById('cancelAttachmentBtn');
+        const addAttachmentBtn = document.getElementById('addAttachmentBtn');
+        const attachmentType = document.getElementById('attachmentType');
+        const attachmentUrl = document.getElementById('attachmentUrl');
+        const useSampleImage = document.getElementById('useSampleImage');
+        const useSampleVideo = document.getElementById('useSampleVideo');
+        const userAvatar = document.getElementById('userAvatar');
+        const userName = document.getElementById('userName');
+        const pinModal = document.getElementById('pinModal');
+        const closePinModalBtn = document.getElementById('closePinModalBtn');
+        const pinDigit1 = document.getElementById('pinDigit1');
+        const pinDigit2 = document.getElementById('pinDigit2');
+        const pinDigit3 = document.getElementById('pinDigit3');
+        const pinDigit4 = document.getElementById('pinDigit4');
+        const pinMessage = document.getElementById('pinMessage');
+        const clearPinBtn = document.getElementById('clearPinBtn');
+        const deletePinBtn = document.getElementById('deletePinBtn');
+        const submitPinBtn = document.getElementById('submitPinBtn');
+        const pinKeys = document.querySelectorAll('.pin-key[data-value]');
+        const loginLoading = document.getElementById('loginLoading');
+        const adminLoading = document.getElementById('adminLoading');
+        const chatLoading = document.getElementById('chatLoading');
+
+        // ============== INITIALIZE APP ==============
+        function initApp() {
+            // Load current user from localStorage
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                currentUser = savedUser;
+                updateUserInfo();
+            } else {
+                // Generate random user if none exists
+                currentUser = 'User' + Math.floor(Math.random() * 1000);
+                localStorage.setItem('currentUser', currentUser);
+                updateUserInfo();
+            }
+            
+            // Set event listeners
+            setupEventListeners();
+            
+            // Show login page by default
+            showPage('loginPage');
+            
+            // Check if admin PIN exists in Firebase, if not create it
+            checkAndSetAdminPin();
+        }
+
+        // ============== FIREBASE FUNCTIONS ==============
+        // Check if admin PIN exists in Firebase, if not create it with default 8896
+        function checkAndSetAdminPin() {
+            database.ref('adminPin').once('value').then(snapshot => {
+                if (!snapshot.exists()) {
+                    // Set default PIN
+                    database.ref('adminPin').set('8896');
+                }
+            });
+        }
+
+        // Load session data from Firebase
+        function loadSessionData(sessionCode) {
+            showLoading('loginLoading');
+            
+            return new Promise((resolve, reject) => {
+                database.ref('sessions/' + sessionCode).once('value').then(snapshot => {
+                    hideLoading('loginLoading');
+                    
+                    if (snapshot.exists()) {
+                        const sessionData = snapshot.val();
+                        friends = sessionData.friends || [];
+                        messages = sessionData.messages || [];
+                        resolve(true);
+                    } else {
+                        resolve(false);
+                    }
+                }).catch(error => {
+                    hideLoading('loginLoading');
+                    console.error("Error loading session:", error);
+                    reject(error);
+                });
+            });
+        }
+
+        // Save session data to Firebase
+        function saveSessionData() {
+            if (!currentSessionCode) return;
+            
+            const sessionData = {
+                code: currentSessionCode,
+                friends: friends,
+                messages: messages,
+                lastUpdated: Date.now()
+            };
+            
+            database.ref('sessions/' + currentSessionCode).set(sessionData);
+        }
+
+        // Add a new message to Firebase
+        function addMessageToFirebase(message) {
+            if (!currentSessionCode) return;
+            
+            // Get current messages
+            database.ref('sessions/' + currentSessionCode + '/messages').once('value').then(snapshot => {
+                let messagesArray = [];
+                if (snapshot.exists()) {
+                    messagesArray = snapshot.val();
+                }
+                
+                // Add new message
+                messagesArray.push(message);
+                
+                // Update in Firebase
+                database.ref('sessions/' + currentSessionCode + '/messages').set(messagesArray);
+            });
+        }
+
+        // Delete a message from Firebase
+        function deleteMessageFromFirebase(messageId) {
+            if (!currentSessionCode) return;
+            
+            // Get current messages
+            database.ref('sessions/' + currentSessionCode + '/messages').once('value').then(snapshot => {
+                if (snapshot.exists()) {
+                    let messagesArray = snapshot.val();
+                    
+                    // Find and remove message
+                    const index = messagesArray.findIndex(msg => msg.id === messageId);
+                    if (index !== -1) {
+                        messagesArray.splice(index, 1);
+                        
+                        // Update in Firebase
+                        database.ref('sessions/' + currentSessionCode + '/messages').set(messagesArray);
+                    }
+                }
+            });
+        }
+
+        // Add a friend to Firebase
+        function addFriendToFirebase(friend) {
+            if (!currentSessionCode) return;
+            
+            // Get current friends
+            database.ref('sessions/' + currentSessionCode + '/friends').once('value').then(snapshot => {
+                let friendsArray = [];
+                if (snapshot.exists()) {
+                    friendsArray = snapshot.val();
+                }
+                
+                // Add new friend
+                friendsArray.push(friend);
+                
+                // Update in Firebase
+                database.ref('sessions/' + currentSessionCode + '/friends').set(friendsArray);
+            });
+        }
+
+        // Remove a friend from Firebase
+        function removeFriendFromFirebase(friendId) {
+            if (!currentSessionCode) return;
+            
+            // Get current friends
+            database.ref('sessions/' + currentSessionCode + '/friends').once('value').then(snapshot => {
+                if (snapshot.exists()) {
+                    let friendsArray = snapshot.val();
+                    
+                    // Find and remove friend
+                    const index = friendsArray.findIndex(f => f.id === friendId);
+                    if (index !== -1) {
+                        friendsArray.splice(index, 1);
+                        
+                        // Update in Firebase
+                        database.ref('sessions/' + currentSessionCode + '/friends').set(friendsArray);
+                    }
+                }
+            });
+        }
+
+        // Setup real-time listener for messages
+        function setupMessageListener() {
+            if (!currentSessionCode) return;
+            
+            showLoading('chatLoading');
+            
+            messagesRef = database.ref('sessions/' + currentSessionCode + '/messages');
+            friendsRef = database.ref('sessions/' + currentSessionCode + '/friends');
+            
+            // Listen for messages
+            messagesRef.on('value', snapshot => {
+                hideLoading('chatLoading');
+                
+                if (snapshot.exists()) {
+                    messages = snapshot.val();
+                    renderMessages();
+                } else {
+                    messages = [];
+                    renderMessages();
+                }
+            });
+            
+            // Listen for friends
+            friendsRef.on('value', snapshot => {
+                if (snapshot.exists()) {
+                    friends = snapshot.val();
+                    renderFriendsList();
+                    updateOnlineCount();
+                } else {
+                    friends = [];
+                    renderFriendsList();
+                    updateOnlineCount();
+                }
+            });
+        }
+
+        // Remove real-time listeners
+        function removeListeners() {
+            if (messagesRef) {
+                messagesRef.off();
+            }
+            if (friendsRef) {
+                friendsRef.off();
+            }
+        }
+
+        // ============== HELPER FUNCTIONS ==============
+        // Show loading spinner
+        function showLoading(elementId) {
+            document.getElementById(elementId).classList.add('active');
+        }
+
+        // Hide loading spinner
+        function hideLoading(elementId) {
+            document.getElementById(elementId).classList.remove('active');
+        }
+
+        // Update user info in UI
+        function updateUserInfo() {
+            userName.textContent = currentUser;
+            userAvatar.textContent = currentUser.charAt(0).toUpperCase();
+        }
+
+        // Show specific page
+        function showPage(pageId) {
+            // Hide all pages
+            loginPage.classList.remove('active');
+            adminPage.classList.remove('active');
+            chatPage.classList.remove('active');
+            
+            // Show requested page
+            document.getElementById(pageId).classList.add('active');
+            currentPage = pageId;
+            
+            // Update UI based on page
+            if (pageId === 'chatPage') {
+                renderMessages();
+                updateOnlineCount();
+                sessionNameEl.textContent = currentSessionCode;
+                
+                // Setup message listener
+                setupMessageListener();
+            }
+        }
+
+        // Initialize PIN input functionality
+        function initPinInputs() {
+            const pinInputs = [pinDigit1, pinDigit2, pinDigit3, pinDigit4];
+            
+            // Add click handlers to PIN inputs
+            pinInputs.forEach(input => {
+                input.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    currentPinIndex = index;
+                    updatePinInputs();
+                });
+                
+                // Prevent manual input
+                input.addEventListener('keydown', function(e) {
+                    e.preventDefault();
+                });
+            });
+            
+            // Add click handlers to PIN keypad buttons
+            pinKeys.forEach(key => {
+                key.addEventListener('click', function() {
+                    if (currentPinIndex < 4) {
+                        pinInput[currentPinIndex] = this.getAttribute('data-value');
+                        currentPinIndex++;
+                        updatePinInputs();
+                    }
+                });
+            });
+            
+            // Clear PIN button
+            clearPinBtn.addEventListener('click', clearPin);
+            
+            // Delete PIN button
+            deletePinBtn.addEventListener('click', deletePinDigit);
+            
+            // Submit PIN button
+            submitPinBtn.addEventListener('click', verifyPin);
+            
+            // Close PIN modal button
+            closePinModalBtn.addEventListener('click', hidePinModal);
+        }
+
+        // Update PIN input display
+        function updatePinInputs() {
+            const pinInputs = [pinDigit1, pinDigit2, pinDigit3, pinDigit4];
+            
+            pinInputs.forEach((input, index) => {
+                if (pinInput[index]) {
+                    input.value = '•';
+                    input.classList.add('filled');
+                } else {
+                    input.value = '';
+                    input.classList.remove('filled');
+                }
+            });
+            
+            // Clear any previous message
+            pinMessage.textContent = '';
+            pinMessage.className = 'pin-message';
+        }
+
+        // Clear PIN input
+        function clearPin() {
+            pinInput = ['', '', '', ''];
+            currentPinIndex = 0;
+            updatePinInputs();
+        }
+
+        // Delete last PIN digit
+        function deletePinDigit() {
+            if (currentPinIndex > 0) {
+                currentPinIndex--;
+                pinInput[currentPinIndex] = '';
+                updatePinInputs();
+            }
+        }
+
+        // Verify PIN from Firebase
+        function verifyPin() {
+            const enteredPin = pinInput.join('');
+            
+            if (enteredPin.length !== 4) {
+                showPinMessage('Masukkan 4 digit PIN', 'error');
+                return;
+            }
+            
+            showPinMessage('Memeriksa PIN...', 'info');
+            
+            // Get admin PIN from Firebase
+            database.ref('adminPin').once('value').then(snapshot => {
+                const firebasePin = snapshot.val();
+                
+                if (enteredPin === firebasePin) {
+                    showPinMessage('PIN benar! Mengarahkan ke admin panel...', 'success');
+                    
+                    // Clear PIN input
+                    clearPin();
+                    
+                    // Hide modal and show admin panel after delay
+                    setTimeout(() => {
+                        hidePinModal();
+                        isAdmin = true;
+                        showPage('adminPage');
+                    }, 1000);
+                } else {
+                    showPinMessage('PIN salah! Coba lagi.', 'error');
+                    // Clear PIN for security
+                    setTimeout(clearPin, 500);
+                }
+            });
+        }
+
+        // Show PIN message
+        function showPinMessage(message, type) {
+            pinMessage.textContent = message;
+            pinMessage.className = 'pin-message';
+            
+            if (type === 'success') {
+                pinMessage.classList.add('pin-success');
+            } else if (type === 'error') {
+                pinMessage.classList.add('pin-error');
+            } else if (type === 'info') {
+                pinMessage.style.color = '#0c5460';
+            }
+        }
+
+        // Show PIN modal
+        function showPinModal() {
+            clearPin();
+            pinModal.classList.add('active');
+        }
+
+        // Hide PIN modal
+        function hidePinModal() {
+            pinModal.classList.remove('active');
+        }
+
+        // Generate random session code
+        function generateSessionCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = '';
+            for (let i = 0; i < 6; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            
+            currentSessionCode = code;
+            currentSessionCodeEl.textContent = currentSessionCode;
+            
+            // Clear friends and messages for new session
+            friends = [];
+            messages = [];
+            renderFriendsList();
+            
+            // Save to Firebase
+            saveSessionData();
+            
+            alert(`Sesi baru dibuat! Kode sesi: ${code}. Bagikan kode ini dengan teman-teman Anda.`);
+        }
+
+        // Join existing session
+        async function joinSession() {
+            const code = sessionCodeInput.value.trim().toUpperCase();
+            
+            if (!code) {
+                alert('Masukkan kode sesi terlebih dahulu!');
+                return;
+            }
+            
+            if (code.length !== 6) {
+                alert('Kode sesi harus terdiri dari 6 karakter!');
+                return;
+            }
+            
+            currentSessionCode = code;
+            isAdmin = false;
+            
+            // Check if session exists in Firebase
+            try {
+                const sessionExists = await loadSessionData(code);
+                
+                if (sessionExists) {
+                    // Set current user if not set
+                    if (!currentUser) {
+                        currentUser = 'User' + Math.floor(Math.random() * 1000);
+                        localStorage.setItem('currentUser', currentUser);
+                        updateUserInfo();
+                    }
+                    
+                    // Show chat page
+                    showPage('chatPage');
+                } else {
+                    alert('Sesi tidak ditemukan! Periksa kode sesi Anda.');
+                }
+            } catch (error) {
+                alert('Terjadi kesalahan saat memuat sesi. Coba lagi.');
+            }
+        }
+
+        // Join as admin
+        function joinAsAdmin() {
+            isAdmin = true;
+            showPage('chatPage');
+        }
+
+        // Add friend to session
+        function addFriend() {
+            const name = friendNameInput.value.trim();
+            
+            if (!name) {
+                alert('Masukkan nama teman terlebih dahulu!');
+                return;
+            }
+            
+            // Create friend object
+            const friend = {
+                id: Date.now(),
+                name: name,
+                avatar: name.charAt(0).toUpperCase()
+            };
+            
+            // Add to friends array
+            friends.push(friend);
+            
+            // Update UI
+            renderFriendsList();
+            
+            // Clear input
+            friendNameInput.value = '';
+            
+            // Save to Firebase
+            addFriendToFirebase(friend);
+            
+            alert(`Teman "${name}" berhasil ditambahkan ke sesi!`);
+        }
+
+        // Render friends list
+        function renderFriendsList() {
+            friendsList.innerHTML = '';
+            
+            if (friends.length === 0) {
+                friendsList.innerHTML = '<p style="color: #888;">Belum ada teman yang ditambahkan.</p>';
+                return;
+            }
+            
+            friends.forEach(friend => {
+                const friendEl = document.createElement('div');
+                friendEl.className = 'friend-item';
+                friendEl.innerHTML = `
+                    <div class="friend-avatar">${friend.avatar}</div>
+                    <div class="friend-name">${friend.name}</div>
+                `;
+                friendsList.appendChild(friendEl);
+            });
+        }
+
+        // Send message
+        function sendMessage() {
+            const content = messageInput.value.trim();
+            
+            if (!content) return;
+            
+            // Create message object
+            const message = {
+                id: Date.now(),
+                sender: currentUser,
+                content: content,
+                time: getCurrentTime(),
+                type: 'text'
+            };
+            
+            // Add to messages array
+            messages.push(message);
+            
+            // Clear input
+            messageInput.value = '';
+            
+            // Save to Firebase
+            addMessageToFirebase(message);
+            
+            // Auto-scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Add attachment (image/video)
+        function addAttachment() {
+            const url = attachmentUrl.value.trim();
+            const type = attachmentType.value;
+            
+            if (!url) {
+                alert('Masukkan URL file terlebih dahulu!');
+                return;
+            }
+            
+            // Create message object
+            const message = {
+                id: Date.now(),
+                sender: currentUser,
+                content: url,
+                time: getCurrentTime(),
+                type: type
+            };
+            
+            // Add to messages array
+            messages.push(message);
+            
+            // Save to Firebase
+            addMessageToFirebase(message);
+            
+            // Hide modal
+            hideAttachmentModal();
+        }
+
+        // Show attachment modal
+        function showAttachmentModal(type) {
+            currentAttachmentType = type;
+            attachmentType.value = type;
+            attachmentUrl.value = '';
+            attachmentModal.classList.add('active');
+        }
+
+        // Hide attachment modal
+        function hideAttachmentModal() {
+            attachmentModal.classList.remove('active');
+        }
+
+        // Render messages in chat
+        function renderMessages() {
+            chatMessages.innerHTML = '';
+            
+            if (messages.length === 0) {
+                chatMessages.innerHTML = '<p style="text-align: center; color: #888; margin-top: 20px;">Belum ada pesan. Mulailah percakapan!</p>';
+                return;
+            }
+            
+            messages.forEach(message => {
+                const messageEl = document.createElement('div');
+                messageEl.className = `message ${message.sender === currentUser ? 'message-sent' : 'message-received'}`;
+                
+                let contentHtml = '';
+                if (message.type === 'image') {
+                    contentHtml = `
+                        <div class="message-content">${message.sender === currentUser ? 'Anda mengirim gambar' : `${message.sender} mengirim gambar`}</div>
+                        <img src="${message.content}" alt="Gambar" class="message-image" onerror="this.src='https://via.placeholder.com/300x200?text=Gambar+Tidak+Ditemukan'">
+                    `;
+                } else if (message.type === 'video') {
+                    contentHtml = `
+                        <div class="message-content">${message.sender === currentUser ? 'Anda mengirim video' : `${message.sender} mengirim video`}</div>
+                        <video controls class="message-video" style="max-width: 100%; max-height: 200px;">
+                            <source src="${message.content}" type="video/mp4">
+                            Browser Anda tidak mendukung pemutaran video.
+                        </video>
+                    `;
+                } else {
+                    contentHtml = `<div class="message-content">${message.content}</div>`;
+                }
+                
+                messageEl.innerHTML = `
+                    <div class="message-sender">${message.sender === currentUser ? 'Anda' : message.sender}</div>
+                    ${contentHtml}
+                    <div class="message-time">${message.time}</div>
+                    <div class="message-actions">
+                        ${message.sender === currentUser || isAdmin ? `<button class="btn btn-danger btn-sm" onclick="deleteMessage(${message.id})"><i class="fas fa-trash"></i></button>` : ''}
+                    </div>
+                `;
+                
+                chatMessages.appendChild(messageEl);
+            });
+            
+            // Auto-scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Delete message
+        function deleteMessage(messageId) {
+            if (!confirm('Apakah Anda yakin ingin menghapus pesan ini?')) return;
+            
+            // Delete from Firebase
+            deleteMessageFromFirebase(messageId);
+        }
+
+        // Update online count
+        function updateOnlineCount() {
+            const count = friends.length + 1; // Friends + current user
+            onlineCountEl.textContent = `${count} orang online`;
+        }
+
+        // Get current time in HH:MM format
+        function getCurrentTime() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            return `${hours}:${minutes}`;
+        }
+
+        // Leave session
+        function leaveSession() {
+            if (confirm('Apakah Anda yakin ingin meninggalkan sesi chat ini?')) {
+                // Remove listeners
+                removeListeners();
+                
+                // Reset state
+                currentSessionCode = '';
+                friends = [];
+                messages = [];
+                isAdmin = false;
+                
+                // Show login page
+                showPage('loginPage');
+            }
+        }
+
+        // Logout
+        function logout() {
+            if (confirm('Apakah Anda yakin ingin logout?')) {
+                // Remove listeners
+                removeListeners();
+                
+                // Reset user
+                currentUser = 'User' + Math.floor(Math.random() * 1000);
+                localStorage.setItem('currentUser', currentUser);
+                updateUserInfo();
+                
+                // Reset state
+                currentSessionCode = '';
+                friends = [];
+                messages = [];
+                isAdmin = false;
+                
+                // Show login page
+                showPage('loginPage');
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Login page
+            joinSessionBtn.addEventListener('click', joinSession);
+            adminLoginBtn.addEventListener('click', () => {
+                showPinModal();
+            });
+            logoutBtn.addEventListener('click', logout);
+            
+            // Admin panel
+            generateSessionBtn.addEventListener('click', generateSessionCode);
+            addFriendBtn.addEventListener('click', addFriend);
+            joinAsAdminBtn.addEventListener('click', joinAsAdmin);
+            
+            // Chat page
+            sendMessageBtn.addEventListener('click', sendMessage);
+            messageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+            
+            attachImageBtn.addEventListener('click', () => showAttachmentModal('image'));
+            attachVideoBtn.addEventListener('click', () => showAttachmentModal('video'));
+            leaveSessionBtn.addEventListener('click', leaveSession);
+            
+            // Attachment modal
+            closeModalBtn.addEventListener('click', hideAttachmentModal);
+            cancelAttachmentBtn.addEventListener('click', hideAttachmentModal);
+            addAttachmentBtn.addEventListener('click', addAttachment);
+            useSampleImage.addEventListener('click', () => {
+                attachmentUrl.value = 'https://images.unsplash.com/photo-1579546929662-711aa81148cf?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80';
+            });
+            useSampleVideo.addEventListener('click', () => {
+                attachmentUrl.value = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+            });
+            
+            attachmentType.addEventListener('change', function() {
+                currentAttachmentType = this.value;
+            });
+            
+            // Initialize PIN inputs
+            initPinInputs();
+        }
+
+        // Initialize the app when page loads
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
