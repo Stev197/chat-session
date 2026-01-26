@@ -776,11 +776,36 @@
             animation: modalSlideIn 0.5s ease-out;
             max-height: 90vh;
             overflow-y: auto;
+            position: relative;
         }
 
         @keyframes modalSlideIn {
             from { opacity: 0; transform: translateY(-30px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-close-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-circle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            z-index: 10;
+        }
+
+        .modal-close-btn:hover {
+            background: rgba(0, 0, 0, 0.1);
+            color: #ff4757;
         }
 
         .session-form h2 {
@@ -1221,6 +1246,9 @@
     <!-- Session Modal -->
     <div class="session-modal" id="sessionModal">
         <div class="session-form">
+            <button class="modal-close-btn" id="modalCloseBtn">
+                <i class="fas fa-times"></i>
+            </button>
             <h2>Chat Session</h2>
             <p>Mulai percakapan dengan membuat sesi baru atau bergabung dengan sesi yang sudah ada</p>
             
@@ -1429,6 +1457,7 @@
             
             // Elemen DOM
             const sessionModal = document.getElementById('sessionModal');
+            const modalCloseBtn = document.getElementById('modalCloseBtn');
             const chatContainer = document.getElementById('chatContainer');
             const sessionAction = document.getElementById('sessionAction');
             const sessionIdGroup = document.getElementById('sessionIdGroup');
@@ -1548,7 +1577,7 @@
                 connectedRef.on("value", function(snap) {
                     if (snap.val() === true) {
                         statusIndicator.classList.add('connected');
-                        statusText.textContent = "Connected To Server";
+                        statusText.textContent = "Terhubung";
                         
                         // Simpan user online di sesi saat ini
                         if (currentSession.usersRef) {
@@ -1565,7 +1594,7 @@
                         }
                     } else {
                         statusIndicator.classList.remove('connected');
-                        statusText.textContent = "Disconected!";
+                        statusText.textContent = "Terputus";
                     }
                 });
             }
@@ -1856,6 +1885,18 @@
                 return null;
             }
             
+            // Tutup modal session
+            function closeSessionModal() {
+                sessionModal.classList.add('hidden');
+                
+                // Jika sudah ada sesi aktif, fokus ke input pesan
+                if (sessions.length > 0) {
+                    setTimeout(() => {
+                        messageInput.focus();
+                    }, 300);
+                }
+            }
+            
             // Join atau buat sesi
             function startSession(sessionId = null, username = null) {
                 const usernameValue = username || usernameInput.value.trim();
@@ -1924,7 +1965,7 @@
                 
                 // Sembunyikan modal jika baru pertama kali
                 if (sessions.length === 1) {
-                    sessionModal.classList.add('hidden');
+                    closeSessionModal();
                     chatContainer.style.display = 'flex';
                 }
                 
@@ -2405,10 +2446,18 @@
                 // Buka modal untuk sesi baru
                 sessionModal.classList.remove('hidden');
             });
+            modalCloseBtn.addEventListener('click', closeSessionModal);
             themeToggle.addEventListener('click', toggleTheme);
             selectMessagesBtn.addEventListener('click', toggleSelectMode);
             deleteSelectedBtn.addEventListener('click', deleteSelectedMessages);
             clearChatBtn.addEventListener('click', clearChat);
+            
+            // Tutup modal saat klik di luar form
+            sessionModal.addEventListener('click', function(event) {
+                if (event.target === sessionModal) {
+                    closeSessionModal();
+                }
+            });
             
             // Ekspos fungsi ke global scope untuk event handlers di HTML
             window.closeSessionTab = closeSessionTab;
@@ -2526,5 +2575,3 @@
     </script>
 </body>
 </html>
-
-
