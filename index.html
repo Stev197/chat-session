@@ -593,6 +593,38 @@
             color: rgba(255, 255, 255, 0.9);
         }
 
+        /* Media Message Styles */
+        .message-media-container {
+            margin-top: 8px;
+            border-radius: var(--radius-small);
+            overflow: hidden;
+            max-width: 100%;
+            position: relative;
+        }
+
+        .message-media-container img,
+        .message-media-container video {
+            max-width: 100%;
+            max-height: 300px;
+            display: block;
+            border-radius: var(--radius-small);
+        }
+
+        .message-media-container .media-caption {
+            padding: 8px;
+            font-size: 13px;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        .message.sent .message-media-container .media-caption {
+            color: white;
+        }
+
+        .message.received .message-media-container .media-caption {
+            color: var(--text-primary);
+        }
+
         /* Message Actions */
         .message-actions {
             position: absolute;
@@ -700,7 +732,34 @@
             border-top: 1px solid var(--border-color);
             display: flex;
             gap: 10px;
+            align-items: center;
             flex-shrink: 0;
+        }
+
+        .input-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .attach-button {
+            background: transparent;
+            color: var(--text-secondary);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-circle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all var(--transition-fast);
+        }
+
+        .attach-button:hover {
+            color: #6a11cb;
+            background: rgba(106, 17, 203, 0.1);
         }
 
         .message-input {
@@ -744,6 +803,306 @@
 
         .send-button:active {
             transform: scale(0.98);
+        }
+
+        /* Media Modal */
+        .media-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            backdrop-filter: blur(5px);
+            padding: 16px;
+        }
+
+        .media-modal.hidden {
+            display: none;
+        }
+
+        .media-modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            animation: modalFadeIn 0.3s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .media-modal-content img,
+        .media-modal-content video {
+            max-width: 100%;
+            max-height: 80vh;
+            border-radius: var(--radius-medium);
+            box-shadow: var(--shadow-heavy);
+        }
+
+        .media-modal-caption {
+            color: white;
+            padding: 16px;
+            font-size: 16px;
+            text-align: center;
+            max-width: 800px;
+            word-break: break-word;
+        }
+
+        .media-modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-circle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all var(--transition-fast);
+        }
+
+        .media-modal-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        /* Media Upload Overlay */
+        .media-upload-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1500;
+            backdrop-filter: blur(5px);
+        }
+
+        .media-upload-overlay.hidden {
+            display: none;
+        }
+
+        .media-upload-container {
+            background: var(--bg-primary);
+            border-radius: var(--radius-large);
+            padding: 32px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: var(--shadow-heavy);
+            animation: modalSlideUp 0.3s ease-out;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        @keyframes modalSlideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .media-upload-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .media-upload-header h3 {
+            font-size: 20px;
+            color: var(--text-primary);
+            background: var(--secondary-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .media-upload-close {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-circle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .media-upload-close:hover {
+            background: rgba(0, 0, 0, 0.1);
+            color: #ff4757;
+        }
+
+        .media-upload-preview {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .media-preview {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: var(--radius-medium);
+            display: none;
+        }
+
+        .media-preview.show {
+            display: block;
+        }
+
+        .media-upload-controls {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .media-upload-btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: var(--radius-medium);
+            border: 2px dashed var(--border-color);
+            background: var(--bg-secondary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            color: var(--text-secondary);
+        }
+
+        .media-upload-btn:hover {
+            border-color: #6a11cb;
+            color: #6a11cb;
+            background: rgba(106, 17, 203, 0.05);
+        }
+
+        .media-upload-btn i {
+            font-size: 32px;
+        }
+
+        .media-upload-input {
+            display: none;
+        }
+
+        .media-caption-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-medium);
+            font-size: 14px;
+            resize: none;
+            min-height: 80px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .media-caption-input:focus {
+            border-color: #6a11cb;
+            box-shadow: 0 0 0 2px rgba(106, 17, 203, 0.1);
+            outline: none;
+        }
+
+        .media-upload-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .media-upload-send,
+        .media-upload-cancel {
+            flex: 1;
+            padding: 14px;
+            border-radius: var(--radius-medium);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-medium);
+            border: none;
+            font-size: 16px;
+        }
+
+        .media-upload-send {
+            background: var(--secondary-gradient);
+            color: white;
+        }
+
+        .media-upload-send:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .media-upload-send:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .media-upload-cancel {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 2px solid var(--border-color);
+        }
+
+        .media-upload-cancel:hover {
+            background: var(--bg-secondary);
+        }
+
+        /* Paste Indicator */
+        .paste-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px 30px;
+            border-radius: var(--radius-large);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            z-index: 1001;
+            box-shadow: var(--shadow-heavy);
+            animation: fadeIn 0.3s ease-out;
+            text-align: center;
+        }
+
+        .paste-indicator.hidden {
+            display: none;
+        }
+
+        .paste-indicator i {
+            font-size: 36px;
+            color: #2ed573;
+        }
+
+        .paste-indicator p {
+            font-size: 14px;
+            max-width: 250px;
+            line-height: 1.4;
         }
 
         /* Session Modal */
@@ -1039,6 +1398,11 @@
             .session-form {
                 padding: 40px 32px;
             }
+            
+            .media-modal-content img,
+            .media-modal-content video {
+                max-height: 70vh;
+            }
         }
 
         /* Desktop */
@@ -1057,6 +1421,11 @@
             
             .session-actions {
                 gap: 16px;
+            }
+            
+            .media-modal-content img,
+            .media-modal-content video {
+                max-height: 80vh;
             }
         }
 
@@ -1163,6 +1532,24 @@
                 width: 100%;
                 justify-content: space-between;
             }
+            
+            .media-upload-container {
+                padding: 24px;
+                width: 95%;
+            }
+            
+            .media-upload-controls {
+                flex-direction: column;
+            }
+            
+            .media-upload-actions {
+                flex-direction: column;
+            }
+            
+            .media-modal-content img,
+            .media-modal-content video {
+                max-height: 60vh;
+            }
         }
 
         /* Very small screens */
@@ -1186,6 +1573,18 @@
             
             .message-input {
                 font-size: 16px; /* Mencegah zoom di iOS */
+            }
+            
+            .attach-button {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+            
+            .send-button {
+                width: 40px;
+                height: 40px;
+                font-size: 14px;
             }
         }
 
@@ -1211,6 +1610,11 @@
             
             .input-container {
                 padding: 8px 12px;
+            }
+            
+            .media-modal-content img,
+            .media-modal-content video {
+                max-height: 60vh;
             }
         }
 
@@ -1417,15 +1821,77 @@
                     </div>
                 </div>
                 
-                <!-- Input Container -->
+                <!-- Input Container dengan Menu Foto/Video -->
                 <div class="input-container">
+                    <div class="input-actions">
+                        <button class="attach-button" id="attachButton" title="Lampirkan Foto/Video">
+                            <i class="fas fa-paperclip"></i>
+                        </button>
+                    </div>
+                    
                     <input type="text" class="message-input" id="messageInput" placeholder="Ketik pesan Anda di sini..." autocomplete="off">
+                    
                     <button class="send-button" id="sendButton">
                         <i class="fas fa-paper-plane"></i>
                     </button>
                 </div>
             </div>
         </div>
+    </div>
+    
+    <!-- Media Upload Modal -->
+    <div class="media-upload-overlay hidden" id="mediaUploadOverlay">
+        <div class="media-upload-container">
+            <div class="media-upload-header">
+                <h3>Kirim Foto atau Video</h3>
+                <button class="media-upload-close" id="mediaUploadClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="media-upload-preview">
+                <img id="mediaPreviewImage" class="media-preview" alt="Preview Gambar">
+                <video id="mediaPreviewVideo" class="media-preview" controls></video>
+                
+                <div class="media-upload-controls">
+                    <label class="media-upload-btn" for="mediaUploadInput">
+                        <i class="fas fa-image"></i>
+                        <span>Pilih dari Perangkat</span>
+                    </label>
+                    <label class="media-upload-btn" for="cameraInput">
+                        <i class="fas fa-camera"></i>
+                        <span>Ambil Foto</span>
+                    </label>
+                </div>
+                
+                <input type="file" id="mediaUploadInput" class="media-upload-input" accept="image/*,video/*">
+                <input type="file" id="cameraInput" class="media-upload-input" accept="image/*" capture="environment">
+                
+                <textarea class="media-caption-input" id="mediaCaptionInput" placeholder="Tambahkan keterangan (opsional)"></textarea>
+            </div>
+            
+            <div class="media-upload-actions">
+                <button class="media-upload-cancel" id="mediaUploadCancel">Batal</button>
+                <button class="media-upload-send" id="mediaUploadSend" disabled>Kirim</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Media Modal untuk Preview -->
+    <div class="media-modal hidden" id="mediaModal">
+        <button class="media-modal-close" id="mediaModalClose">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="media-modal-content">
+            <!-- Media akan dimuat di sini -->
+        </div>
+        <div class="media-modal-caption" id="mediaModalCaption"></div>
+    </div>
+    
+    <!-- Paste Indicator -->
+    <div class="paste-indicator hidden" id="pasteIndicator">
+        <i class="fas fa-image"></i>
+        <p>Gambar telah disalin. Tekan Ctrl+V untuk menempelkan di chat.</p>
     </div>
     
     <div class="notification" id="notification">
@@ -1495,6 +1961,23 @@
             const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
             const clearChatBtn = document.getElementById('clearChatBtn');
             
+            // Elemen untuk media
+            const attachButton = document.getElementById('attachButton');
+            const mediaUploadOverlay = document.getElementById('mediaUploadOverlay');
+            const mediaUploadClose = document.getElementById('mediaUploadClose');
+            const mediaUploadCancel = document.getElementById('mediaUploadCancel');
+            const mediaUploadSend = document.getElementById('mediaUploadSend');
+            const mediaUploadInput = document.getElementById('mediaUploadInput');
+            const cameraInput = document.getElementById('cameraInput');
+            const mediaPreviewImage = document.getElementById('mediaPreviewImage');
+            const mediaPreviewVideo = document.getElementById('mediaPreviewVideo');
+            const mediaCaptionInput = document.getElementById('mediaCaptionInput');
+            const mediaModal = document.getElementById('mediaModal');
+            const mediaModalClose = document.getElementById('mediaModalClose');
+            const mediaModalContent = document.querySelector('.media-modal-content');
+            const mediaModalCaption = document.getElementById('mediaModalCaption');
+            const pasteIndicator = document.getElementById('pasteIndicator');
+            
             // Variabel aplikasi
             let currentUser = {
                 name: "Pengguna",
@@ -1517,6 +2000,14 @@
             let activeSessionIndex = 0;
             let isSelectMode = false;
             let selectedMessages = [];
+            
+            // Variabel untuk media upload
+            let currentMedia = {
+                file: null,
+                type: null, // 'image' atau 'video'
+                url: null,
+                caption: ''
+            };
             
             // Referensi database
             let messagesRef, usersRef, typingRef;
@@ -1627,13 +2118,39 @@
                 const avatarInitial = messageData.sender.charAt(0).toUpperCase();
                 const avatarColor = messageData.color || getRandomColor();
                 
+                // Tentukan tipe pesan
+                const isMediaMessage = messageData.type === 'image' || messageData.type === 'video';
+                
+                let messageContentHTML = '';
+                
+                if (isMediaMessage) {
+                    // Pesan media (gambar/video)
+                    const mediaTag = messageData.type === 'image' ? 
+                        `<img src="${messageData.content}" alt="Gambar dari ${messageData.sender}" loading="lazy">` :
+                        `<video src="${messageData.content}" controls poster="${messageData.thumbnail || ''}"></video>`;
+                    
+                    messageContentHTML = `
+                        <div class="message-sender">${messageData.sender}</div>
+                        <div class="message-media-container">
+                            ${mediaTag}
+                            ${messageData.caption ? `<div class="media-caption">${messageData.caption}</div>` : ''}
+                        </div>
+                        <div class="message-time">${formatTime(messageData.timestamp)}</div>
+                    `;
+                } else {
+                    // Pesan teks biasa
+                    messageContentHTML = `
+                        <div class="message-sender">${messageData.sender}</div>
+                        <div class="message-text">${messageData.text}</div>
+                        <div class="message-time">${formatTime(messageData.timestamp)}</div>
+                    `;
+                }
+                
                 messageElement.innerHTML = `
                     <input type="checkbox" class="message-select-checkbox" style="display: none;" data-key="${messageKey}">
                     <div class="message-avatar" style="background: linear-gradient(to right, ${avatarColor}, ${adjustColor(avatarColor, 20)});">${avatarInitial}</div>
                     <div class="message-content">
-                        <div class="message-sender">${messageData.sender}</div>
-                        <div class="message-text">${messageData.text}</div>
-                        <div class="message-time">${formatTime(messageData.timestamp)}</div>
+                        ${messageContentHTML}
                     </div>
                     <div class="message-actions">
                         <button class="message-action-btn" onclick="deleteSingleMessage('${messageKey}')">
@@ -1641,6 +2158,22 @@
                         </button>
                     </div>
                 `;
+                
+                // Tambahkan event listener untuk membuka media dalam modal
+                if (isMediaMessage) {
+                    const mediaContainer = messageElement.querySelector('.message-media-container');
+                    if (mediaContainer) {
+                        const mediaElement = mediaContainer.querySelector('img, video');
+                        if (mediaElement) {
+                            mediaElement.addEventListener('click', function() {
+                                openMediaModal(messageData.content, messageData.type, messageData.caption || '');
+                            });
+                            
+                            // Tambahkan kursor pointer untuk media
+                            mediaElement.style.cursor = 'pointer';
+                        }
+                    }
+                }
                 
                 messagesContainer.appendChild(messageElement);
                 scrollToBottom();
@@ -1650,6 +2183,30 @@
                 checkbox.addEventListener('change', function() {
                     toggleMessageSelection(messageKey, this.checked);
                 });
+            }
+            
+            // Buka modal untuk melihat media
+            function openMediaModal(mediaUrl, mediaType, caption) {
+                mediaModalContent.innerHTML = '';
+                mediaModalCaption.textContent = caption;
+                
+                let mediaElement;
+                if (mediaType === 'image') {
+                    mediaElement = document.createElement('img');
+                    mediaElement.src = mediaUrl;
+                    mediaElement.alt = 'Gambar dari chat';
+                } else {
+                    mediaElement = document.createElement('video');
+                    mediaElement.src = mediaUrl;
+                    mediaElement.controls = true;
+                    mediaElement.autoplay = true;
+                }
+                
+                mediaModalContent.appendChild(mediaElement);
+                mediaModal.classList.remove('hidden');
+                
+                // Mencegah scroll body saat modal terbuka
+                document.body.style.overflow = 'hidden';
             }
             
             // Toggle pilihan pesan
@@ -1816,7 +2373,7 @@
                 window.stopTyping = stopTyping;
             }
             
-            // Kirim pesan
+            // Kirim pesan teks
             function sendMessage() {
                 const messageText = messageInput.value.trim();
                 
@@ -1835,7 +2392,8 @@
                     text: messageText,
                     sender: currentUser.name,
                     timestamp: Date.now(),
-                    color: currentUser.color
+                    color: currentUser.color,
+                    type: 'text'
                 };
                 
                 // Kirim ke Firebase
@@ -1851,6 +2409,78 @@
                         console.error("Error mengirim pesan: ", error);
                         showNotification("Gagal mengirim pesan!", 'error');
                     });
+            }
+            
+            // Kirim pesan media (gambar/video)
+            function sendMediaMessage() {
+                if (!currentMedia.file || !currentSession.messagesRef) {
+                    showNotification("Tidak ada media untuk dikirim!", 'error');
+                    return;
+                }
+                
+                // Baca file sebagai base64
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    // Buat pesan media
+                    const message = {
+                        type: currentMedia.type,
+                        content: e.target.result,
+                        sender: currentUser.name,
+                        timestamp: Date.now(),
+                        color: currentUser.color,
+                        caption: currentMedia.caption || '',
+                        fileName: currentMedia.file.name,
+                        fileSize: currentMedia.file.size
+                    };
+                    
+                    // Jika video, buat thumbnail (simulasi dengan ikon)
+                    if (currentMedia.type === 'video') {
+                        message.thumbnail = 'data:image/svg+xml;base64,' + btoa(`
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#6a11cb">
+                                <path d="M10 16.5l6-4.5-6-4.5v9zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+                            </svg>
+                        `);
+                    }
+                    
+                    // Kirim ke Firebase
+                    currentSession.messagesRef.push(message)
+                        .then(() => {
+                            // Reset media state
+                            resetMediaUpload();
+                            mediaUploadOverlay.classList.add('hidden');
+                            mediaUploadSend.disabled = true;
+                            
+                            // Tampilkan notifikasi
+                            showNotification(`${currentMedia.type === 'image' ? 'Foto' : 'Video'} berhasil dikirim!`, 'success');
+                        })
+                        .catch((error) => {
+                            console.error("Error mengirim media: ", error);
+                            showNotification("Gagal mengirim media!", 'error');
+                        });
+                };
+                
+                reader.onerror = function() {
+                    showNotification("Gagal membaca file media!", 'error');
+                };
+                
+                reader.readAsDataURL(currentMedia.file);
+            }
+            
+            // Reset state upload media
+            function resetMediaUpload() {
+                currentMedia = {
+                    file: null,
+                    type: null,
+                    url: null,
+                    caption: ''
+                };
+                
+                mediaPreviewImage.classList.remove('show');
+                mediaPreviewVideo.classList.remove('show');
+                mediaPreviewImage.src = '';
+                mediaPreviewVideo.src = '';
+                mediaCaptionInput.value = '';
             }
             
             // Scroll ke bagian bawah chat
@@ -2452,6 +3082,129 @@
             deleteSelectedBtn.addEventListener('click', deleteSelectedMessages);
             clearChatBtn.addEventListener('click', clearChat);
             
+            // Event Listeners untuk Media
+            attachButton.addEventListener('click', function() {
+                mediaUploadOverlay.classList.remove('hidden');
+            });
+            
+            mediaUploadClose.addEventListener('click', function() {
+                mediaUploadOverlay.classList.add('hidden');
+                resetMediaUpload();
+            });
+            
+            mediaUploadCancel.addEventListener('click', function() {
+                mediaUploadOverlay.classList.add('hidden');
+                resetMediaUpload();
+            });
+            
+            mediaUploadSend.addEventListener('click', sendMediaMessage);
+            
+            mediaModalClose.addEventListener('click', function() {
+                mediaModal.classList.add('hidden');
+                document.body.style.overflow = '';
+            });
+            
+            // Tutup modal media saat klik di luar
+            mediaModal.addEventListener('click', function(event) {
+                if (event.target === mediaModal) {
+                    mediaModal.classList.add('hidden');
+                    document.body.style.overflow = '';
+                }
+            });
+            
+            // Handle file upload
+            mediaUploadInput.addEventListener('change', function(e) {
+                handleFileSelect(e.target.files[0]);
+            });
+            
+            cameraInput.addEventListener('change', function(e) {
+                handleFileSelect(e.target.files[0]);
+            });
+            
+            // Handle caption input
+            mediaCaptionInput.addEventListener('input', function() {
+                currentMedia.caption = this.value.trim();
+            });
+            
+            // Handle paste event untuk gambar dari clipboard
+            document.addEventListener('paste', function(e) {
+                // Cek jika user berada di chat container
+                if (chatContainer.style.display !== 'none') {
+                    const items = e.clipboardData.items;
+                    
+                    for (let i = 0; i < items.length; i++) {
+                        if (items[i].type.indexOf('image') !== -1) {
+                            // Mencegah paste ke input teks
+                            e.preventDefault();
+                            
+                            const blob = items[i].getAsFile();
+                            if (blob) {
+                                // Tampilkan indikator
+                                pasteIndicator.classList.remove('hidden');
+                                setTimeout(() => {
+                                    pasteIndicator.classList.add('hidden');
+                                }, 3000);
+                                
+                                // Buka modal upload dengan file yang dipaste
+                                handleFileSelect(blob);
+                                mediaUploadOverlay.classList.remove('hidden');
+                            }
+                            break;
+                        }
+                    }
+                }
+            });
+            
+            // Handle file selection
+            function handleFileSelect(file) {
+                if (!file) return;
+                
+                // Validasi ukuran file (maksimum 10MB)
+                const maxSize = 10 * 1024 * 1024; // 10MB
+                if (file.size > maxSize) {
+                    showNotification("Ukuran file terlalu besar. Maksimum 10MB", 'error');
+                    return;
+                }
+                
+                // Tentukan tipe file
+                const fileType = file.type;
+                let mediaType = null;
+                
+                if (fileType.startsWith('image/')) {
+                    mediaType = 'image';
+                } else if (fileType.startsWith('video/')) {
+                    mediaType = 'video';
+                } else {
+                    showNotification("Format file tidak didukung. Harus gambar atau video", 'error');
+                    return;
+                }
+                
+                // Update currentMedia
+                currentMedia = {
+                    file: file,
+                    type: mediaType,
+                    url: URL.createObjectURL(file),
+                    caption: mediaCaptionInput.value.trim()
+                };
+                
+                // Tampilkan preview
+                if (mediaType === 'image') {
+                    mediaPreviewImage.src = currentMedia.url;
+                    mediaPreviewImage.classList.add('show');
+                    mediaPreviewVideo.classList.remove('show');
+                } else {
+                    mediaPreviewVideo.src = currentMedia.url;
+                    mediaPreviewVideo.classList.add('show');
+                    mediaPreviewImage.classList.remove('show');
+                }
+                
+                // Aktifkan tombol kirim
+                mediaUploadSend.disabled = false;
+                
+                // Fokus ke caption input
+                mediaCaptionInput.focus();
+            }
+            
             // Tutup modal saat klik di luar form
             sessionModal.addEventListener('click', function(event) {
                 if (event.target === sessionModal) {
@@ -2575,6 +3328,3 @@
     </script>
 </body>
 </html>
-
-
-
