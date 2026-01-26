@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chat Session</title>
+    <title>Chat Session dengan Firebase</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -27,6 +27,24 @@
             --transition-fast: 0.2s;
             --transition-medium: 0.3s;
             --transition-slow: 0.5s;
+            
+            /* Variabel untuk light mode */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-tertiary: #f0f5ff;
+            --border-color: #eaeaea;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+        }
+
+        .dark-mode {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #252525;
+            --bg-tertiary: #2d2d2d;
+            --border-color: #404040;
+            --text-primary: #f0f0f0;
+            --text-secondary: #b0b0b0;
+            --chat-received: #2d2d2d;
         }
 
         * {
@@ -45,7 +63,7 @@
 
         body {
             background: var(--primary-gradient);
-            color: var(--text-dark);
+            color: var(--text-primary);
             display: flex;
             flex-direction: column;
         }
@@ -57,9 +75,10 @@
             width: 100%;
             height: 100vh;
             height: 100dvh; /* Untuk browser modern */
-            background-color: rgba(255, 255, 255, 0.98);
+            background-color: var(--bg-primary);
             overflow: hidden;
             position: relative;
+            transition: background-color var(--transition-medium);
         }
 
         /* Header Styles */
@@ -74,6 +93,12 @@
             flex-shrink: 0;
             box-shadow: var(--shadow-light);
             z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .logo-container {
@@ -113,11 +138,100 @@
             background-color: var(--online-color);
         }
 
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Session Tabs */
+        .session-tabs-container {
+            background-color: var(--bg-tertiary);
+            padding: 8px 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            scrollbar-width: thin;
+            flex-shrink: 0;
+            min-height: 52px;
+        }
+
+        .session-tabs {
+            display: flex;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .session-tab {
+            padding: 8px 16px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-medium);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all var(--transition-fast);
+            position: relative;
+            min-width: 120px;
+        }
+
+        .session-tab:hover {
+            border-color: #6a11cb;
+            box-shadow: var(--shadow-light);
+        }
+
+        .session-tab.active {
+            background: var(--secondary-gradient);
+            color: white;
+            border-color: transparent;
+        }
+
+        .session-tab-close {
+            background: none;
+            border: none;
+            color: inherit;
+            padding: 2px 4px;
+            border-radius: var(--radius-circle);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+        }
+
+        .session-tab-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .add-session-btn {
+            background: var(--bg-primary);
+            border: 1px dashed var(--border-color);
+            border-radius: var(--radius-medium);
+            color: var(--text-secondary);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            flex-shrink: 0;
+        }
+
+        .add-session-btn:hover {
+            border-color: #6a11cb;
+            color: #6a11cb;
+        }
+
         /* Session Info */
         .session-info-bar {
-            background-color: #f0f5ff;
+            background-color: var(--bg-tertiary);
             padding: 10px 16px;
-            border-bottom: 1px solid #e0e7ff;
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -136,11 +250,11 @@
 
         .session-id-label {
             font-size: 14px;
-            color: var(--text-light);
+            color: var(--text-secondary);
         }
 
         .session-id {
-            background: white;
+            background: var(--bg-primary);
             padding: 6px 12px;
             border-radius: var(--radius-medium);
             font-weight: 600;
@@ -192,10 +306,15 @@
             align-items: center;
             gap: 4px;
             white-space: nowrap;
+            transition: all var(--transition-fast);
+        }
+
+        .text-button:hover {
+            background: rgba(106, 17, 203, 0.1);
         }
 
         .user-count-badge {
-            background: white;
+            background: var(--bg-primary);
             padding: 6px 12px;
             border-radius: var(--radius-medium);
             font-weight: 600;
@@ -203,6 +322,7 @@
             align-items: center;
             gap: 5px;
             font-size: 14px;
+            color: var(--text-primary);
         }
 
         /* Main Content Area */
@@ -216,8 +336,8 @@
         /* Sidebar */
         .sidebar {
             width: 280px;
-            background-color: #f8f9fa;
-            border-right: 1px solid #eaeaea;
+            background-color: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
             padding: 16px;
             display: flex;
             flex-direction: column;
@@ -257,7 +377,7 @@
             align-items: center;
             gap: 12px;
             padding-bottom: 16px;
-            border-bottom: 1px solid #eaeaea;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .user-avatar {
@@ -285,11 +405,12 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            color: var(--text-primary);
         }
 
         .user-details p {
             font-size: 12px;
-            color: var(--text-light);
+            color: var(--text-secondary);
         }
 
         .active-users-section {
@@ -302,7 +423,7 @@
         .section-title {
             font-size: 16px;
             margin-bottom: 12px;
-            color: var(--text-dark);
+            color: var(--text-primary);
         }
 
         .user-list {
@@ -317,7 +438,8 @@
             gap: 10px;
             padding: 8px 0;
             font-size: 14px;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
         }
 
         .user-list li:last-child {
@@ -343,27 +465,27 @@
 
         .chat-header {
             padding: 12px 16px;
-            border-bottom: 1px solid #eaeaea;
-            background-color: white;
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--bg-primary);
             flex-shrink: 0;
         }
 
         .chat-header h2 {
             font-size: 18px;
-            color: var(--text-dark);
+            color: var(--text-primary);
             margin-bottom: 4px;
         }
 
         .chat-header p {
             font-size: 12px;
-            color: var(--text-light);
+            color: var(--text-secondary);
         }
 
         .messages-container {
             flex: 1;
             padding: 16px;
             overflow-y: auto;
-            background-color: #f9f9f9;
+            background-color: var(--bg-secondary);
             display: flex;
             flex-direction: column;
             gap: 12px;
@@ -377,6 +499,7 @@
             word-wrap: break-word;
             word-break: break-word;
             overflow-wrap: break-word;
+            position: relative;
         }
 
         @keyframes fadeIn {
@@ -421,12 +544,13 @@
             border-radius: 18px;
             box-shadow: var(--shadow-light);
             max-width: calc(100% - 48px);
+            position: relative;
         }
 
         .message.received .message-content {
-            background-color: white;
+            background-color: var(--chat-received);
             border-top-left-radius: 4px;
-            color: var(--text-dark);
+            color: var(--text-primary);
         }
 
         .message.sent .message-content {
@@ -452,7 +576,7 @@
         }
 
         .message.received .message-time {
-            color: var(--text-light);
+            color: var(--text-secondary);
         }
 
         .message-sender {
@@ -469,11 +593,111 @@
             color: rgba(255, 255, 255, 0.9);
         }
 
+        /* Message Actions */
+        .message-actions {
+            position: absolute;
+            top: -10px;
+            right: 5px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-small);
+            box-shadow: var(--shadow-light);
+            display: none;
+            z-index: 1;
+        }
+
+        .message:hover .message-actions {
+            display: flex;
+        }
+
+        .message-action-btn {
+            padding: 4px 8px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 12px;
+            transition: all var(--transition-fast);
+        }
+
+        .message-action-btn:hover {
+            color: #ff4757;
+            background: rgba(255, 71, 87, 0.1);
+        }
+
+        /* Message Selection */
+        .message-select-checkbox {
+            position: absolute;
+            left: 5px;
+            top: 5px;
+            display: none;
+        }
+
+        .select-mode .message-select-checkbox {
+            display: block;
+        }
+
+        .select-mode .message {
+            background: rgba(106, 17, 203, 0.05);
+            border-radius: var(--radius-small);
+            padding: 5px;
+        }
+
+        .select-mode .message.selected {
+            background: rgba(106, 17, 203, 0.15);
+            border: 1px solid #6a11cb;
+        }
+
+        /* Chat Actions */
+        .chat-actions {
+            padding: 8px 16px;
+            background-color: var(--bg-tertiary);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 8px;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .chat-action-left, .chat-action-right {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-button {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-medium);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all var(--transition-fast);
+        }
+
+        .action-button:hover {
+            border-color: #6a11cb;
+            color: #6a11cb;
+        }
+
+        .action-button.danger {
+            color: #ff4757;
+            border-color: #ff4757;
+        }
+
+        .action-button.danger:hover {
+            background: rgba(255, 71, 87, 0.1);
+        }
+
         /* Input Container */
         .input-container {
             padding: 12px 16px;
-            background-color: white;
-            border-top: 1px solid #eaeaea;
+            background-color: var(--bg-primary);
+            border-top: 1px solid var(--border-color);
             display: flex;
             gap: 10px;
             flex-shrink: 0;
@@ -482,12 +706,14 @@
         .message-input {
             flex: 1;
             padding: 10px 16px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             border-radius: var(--radius-large);
             font-size: 14px;
             outline: none;
             transition: all var(--transition-medium);
             min-width: 0;
+            background: var(--bg-primary);
+            color: var(--text-primary);
         }
 
         .message-input:focus {
@@ -541,7 +767,7 @@
         }
 
         .session-form {
-            background: white;
+            background: var(--bg-primary);
             width: 100%;
             max-width: 500px;
             border-radius: var(--radius-large);
@@ -568,7 +794,7 @@
         }
 
         .session-form p {
-            color: var(--text-light);
+            color: var(--text-secondary);
             margin-bottom: 24px;
             font-size: 14px;
             text-align: center;
@@ -582,17 +808,19 @@
             display: block;
             margin-bottom: 6px;
             font-weight: 500;
-            color: var(--text-dark);
+            color: var(--text-primary);
             font-size: 14px;
         }
 
         .form-control {
             width: 100%;
             padding: 12px 16px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             border-radius: var(--radius-medium);
             font-size: 16px;
             transition: all var(--transition-medium);
+            background: var(--bg-primary);
+            color: var(--text-primary);
         }
 
         .form-control:focus {
@@ -635,7 +863,7 @@
         }
 
         .btn-secondary:hover {
-            background: #f0f5ff;
+            background: rgba(106, 17, 203, 0.1);
         }
 
         .session-actions {
@@ -684,9 +912,9 @@
             gap: 6px;
             padding: 8px 12px;
             font-size: 12px;
-            color: var(--text-light);
+            color: var(--text-secondary);
             font-style: italic;
-            background: white;
+            background: var(--bg-primary);
             border-radius: var(--radius-medium);
             align-self: flex-start;
             box-shadow: var(--shadow-light);
@@ -702,7 +930,7 @@
             width: 6px;
             height: 6px;
             border-radius: var(--radius-circle);
-            background-color: var(--text-light);
+            background-color: var(--text-secondary);
             animation: typing 1.4s infinite ease-in-out;
         }
 
@@ -717,7 +945,7 @@
         .empty-state {
             text-align: center;
             padding: 40px 16px;
-            color: var(--text-light);
+            color: var(--text-secondary);
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -728,13 +956,13 @@
         .empty-state i {
             font-size: 48px;
             margin-bottom: 16px;
-            color: #ddd;
+            color: var(--border-color);
         }
 
         .empty-state h3 {
             font-size: 18px;
             margin-bottom: 8px;
-            color: var(--text-dark);
+            color: var(--text-primary);
         }
 
         .empty-state p {
@@ -750,6 +978,26 @@
             font-size: 20px;
             cursor: pointer;
             padding: 8px;
+        }
+
+        /* Dark Mode Toggle Button */
+        .theme-toggle {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-circle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
         }
 
         /* Responsive Design */
@@ -801,6 +1049,16 @@
             .connection-status {
                 font-size: 11px;
                 padding: 4px 8px;
+            }
+            
+            .session-tabs-container {
+                padding: 8px 12px;
+            }
+            
+            .session-tab {
+                min-width: 100px;
+                padding: 6px 12px;
+                font-size: 12px;
             }
             
             .session-info-bar {
@@ -869,6 +1127,16 @@
                 right: 12px;
                 left: 12px;
                 max-width: none;
+            }
+            
+            .chat-actions {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .chat-action-left, .chat-action-right {
+                width: 100%;
+                justify-content: space-between;
             }
         }
 
@@ -939,102 +1207,6 @@
             }
         }
 
-        /* Dark mode support */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --text-dark: #f0f0f0;
-                --text-light: #b0b0b0;
-                --chat-received: #2d2d2d;
-            }
-            
-            .app-container {
-                background-color: #1a1a1a;
-                color: var(--text-dark);
-            }
-            
-            .chat-header,
-            .input-container {
-                background-color: #2d2d2d;
-                border-color: #404040;
-            }
-            
-            .messages-container {
-                background-color: #121212;
-            }
-            
-            .message.received .message-content {
-                background-color: var(--chat-received);
-                color: var(--text-dark);
-            }
-            
-            .message.received .message-time {
-                color: var(--text-light);
-            }
-            
-            .sidebar {
-                background-color: #252525;
-                border-color: #404040;
-            }
-            
-            .user-profile-card {
-                border-color: #404040;
-            }
-            
-            .section-title {
-                color: var(--text-dark);
-            }
-            
-            .user-list li {
-                border-color: #404040;
-                color: var(--text-dark);
-            }
-            
-            .session-info-bar {
-                background-color: #252525;
-                border-color: #404040;
-            }
-            
-            .session-id,
-            .user-count-badge {
-                background-color: #2d2d2d;
-                color: var(--text-dark);
-            }
-            
-            .session-form {
-                background-color: #252525;
-                color: var(--text-dark);
-            }
-            
-            .form-group label {
-                color: var(--text-dark);
-            }
-            
-            .form-control {
-                background-color: #2d2d2d;
-                border-color: #404040;
-                color: var(--text-dark);
-            }
-            
-            .empty-state {
-                color: var(--text-light);
-            }
-            
-            .empty-state h3 {
-                color: var(--text-dark);
-            }
-        }
-
-        /* High contrast mode */
-        @media (prefers-contrast: high) {
-            .status-indicator.connected {
-                outline: 2px solid white;
-            }
-            
-            .message-content {
-                border: 1px solid currentColor;
-            }
-        }
-
         /* Reduced motion */
         @media (prefers-reduced-motion: reduce) {
             * {
@@ -1068,7 +1240,7 @@
             <div class="form-group" id="sessionIdGroup">
                 <label for="sessionId">ID Sesi</label>
                 <input type="text" id="sessionId" class="form-control" placeholder="Masukkan ID sesi (contoh: ABC123)">
-                <p style="font-size: 12px; color: var(--text-light); margin-top: 5px;">ID sesi akan dibuat otomatis jika memilih "Buat Sesi Baru"</p>
+                <p style="font-size: 12px; color: var(--text-secondary); margin-top: 5px;">ID sesi akan dibuat otomatis jika memilih "Buat Sesi Baru"</p>
             </div>
             
             <div class="session-actions">
@@ -1080,9 +1252,9 @@
                 </button>
             </div>
             
-            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
-                <h3 style="font-size: 16px; margin-bottom: 10px; color: var(--text-dark);">Cara Menggunakan:</h3>
-                <ol style="font-size: 14px; color: var(--text-light); padding-left: 20px;">
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+                <h3 style="font-size: 16px; margin-bottom: 10px; color: var(--text-primary);">Cara Menggunakan:</h3>
+                <ol style="font-size: 14px; color: var(--text-secondary); padding-left: 20px;">
                     <li>Masukkan nama Anda</li>
                     <li>Pilih "Buat Sesi Baru" untuk membuat ruang chat baru</li>
                     <li>Bagikan ID sesi ke teman Anda</li>
@@ -1099,17 +1271,36 @@
                 <i class="fas fa-bars"></i>
             </button>
             
-            <div class="logo-container">
-                <i class="fas fa-comments logo-icon"></i>
-                <span class="logo-text">Chat Session</span>
+            <div class="header-left">
+                <div class="logo-container">
+                    <i class="fas fa-comments logo-icon"></i>
+                    <span class="logo-text">Chat Session</span>
+                </div>
             </div>
             
-            <div class="connection-status">
-                <div class="status-indicator" id="statusIndicator"></div>
-                <span id="statusText">Menyambungkan...</span>
+            <div class="header-actions">
+                <button class="theme-toggle" id="themeToggle" title="Ganti Tema">
+                    <i class="fas fa-moon"></i>
+                </button>
+                
+                <div class="connection-status">
+                    <div class="status-indicator" id="statusIndicator"></div>
+                    <span id="statusText">Menyambungkan...</span>
+                </div>
             </div>
         </header>
         
+        <!-- Session Tabs -->
+        <div class="session-tabs-container">
+            <div class="session-tabs" id="sessionTabs">
+                <!-- Tab sesi akan ditambahkan secara dinamis -->
+            </div>
+            <button class="add-session-btn" id="addSessionBtn" title="Tambah Sesi Baru">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+        
+        <!-- Session Info -->
         <div class="session-info-bar">
             <div class="session-id-container">
                 <span class="session-id-label">ID Sesi:</span>
@@ -1121,6 +1312,10 @@
                     <button class="text-button" id="leaveSessionBtn">
                         <i class="fas fa-sign-out-alt"></i>
                         <span>Keluar</span>
+                    </button>
+                    <button class="text-button danger" id="endSessionBtn">
+                        <i class="fas fa-trash-alt"></i>
+                        <span>Hapus Semua</span>
                     </button>
                 </div>
             </div>
@@ -1177,6 +1372,24 @@
                     </div>
                 </div>
                 
+                <!-- Chat Actions -->
+                <div class="chat-actions">
+                    <div class="chat-action-left">
+                        <button class="action-button" id="selectMessagesBtn">
+                            <i class="fas fa-check-square"></i> Pilih Pesan
+                        </button>
+                        <button class="action-button danger" id="deleteSelectedBtn" style="display: none;">
+                            <i class="fas fa-trash-alt"></i> Hapus Terpilih
+                        </button>
+                    </div>
+                    <div class="chat-action-right">
+                        <button class="action-button" id="clearChatBtn">
+                            <i class="fas fa-broom"></i> Bersihkan Chat
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Input Container -->
                 <div class="input-container">
                     <input type="text" class="message-input" id="messageInput" placeholder="Ketik pesan Anda di sini..." autocomplete="off">
                     <button class="send-button" id="sendButton">
@@ -1208,6 +1421,7 @@
             appId: "1:805016544678:web:aaeb2bef3d6db7786f1b67"
         };
         
+        // ============== APLIKASI CHAT SESSION ==============
         document.addEventListener('DOMContentLoaded', function() {
             // Inisialisasi Firebase
             firebase.initializeApp(firebaseConfig);
@@ -1225,6 +1439,7 @@
             const sessionIdDisplay = document.getElementById('sessionIdDisplay');
             const copySessionIdBtn = document.getElementById('copySessionIdBtn');
             const leaveSessionBtn = document.getElementById('leaveSessionBtn');
+            const endSessionBtn = document.getElementById('endSessionBtn');
             const messageInput = document.getElementById('messageInput');
             const sendButton = document.getElementById('sendButton');
             const messagesContainer = document.getElementById('messagesContainer');
@@ -1244,7 +1459,14 @@
             const mobileMenuButton = document.getElementById('mobileMenuButton');
             const chatTitle = document.getElementById('chatTitle');
             const chatDescription = document.getElementById('chatDescription');
+            const sessionTabs = document.getElementById('sessionTabs');
+            const addSessionBtn = document.getElementById('addSessionBtn');
+            const themeToggle = document.getElementById('themeToggle');
+            const selectMessagesBtn = document.getElementById('selectMessagesBtn');
+            const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+            const clearChatBtn = document.getElementById('clearChatBtn');
             
+            // Variabel aplikasi
             let currentUser = {
                 name: "Pengguna",
                 color: getRandomColor(),
@@ -1261,9 +1483,16 @@
                 typingRef: null
             };
             
+            // Manajemen multiple sessions
+            let sessions = [];
+            let activeSessionIndex = 0;
+            let isSelectMode = false;
+            let selectedMessages = [];
+            
             // Referensi database
             let messagesRef, usersRef, typingRef;
             
+            // Warna acak untuk avatar
             function getRandomColor() {
                 const colors = [
                     '#2575fc', '#6a11cb', '#ff7e5f', '#feb47b', 
@@ -1272,6 +1501,7 @@
                 return colors[Math.floor(Math.random() * colors.length)];
             }
             
+            // Fungsi untuk menyesuaikan warna
             function adjustColor(color, amount) {
                 const clamp = (val) => Math.min(255, Math.max(0, val));
                 const hex = color.replace(/^#/, '');
@@ -1281,6 +1511,7 @@
                 return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
             }
             
+            // Generate session ID acak
             function generateSessionId() {
                 const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
                 let result = '';
@@ -1311,13 +1542,15 @@
                 }, 3000);
             }
             
+            // Update status koneksi Firebase
             function updateConnectionStatus() {
                 const connectedRef = database.ref(".info/connected");
                 connectedRef.on("value", function(snap) {
                     if (snap.val() === true) {
                         statusIndicator.classList.add('connected');
-                        statusText.textContent = "Connected to Server";
+                        statusText.textContent = "Terhubung";
                         
+                        // Simpan user online di sesi saat ini
                         if (currentSession.usersRef) {
                             const userOnlineRef = currentSession.usersRef.child(currentUser.name);
                             userOnlineRef.set({
@@ -1327,6 +1560,7 @@
                                 joinedAt: Date.now()
                             });
                             
+                            // Hapus user saat offline
                             userOnlineRef.onDisconnect().remove();
                         }
                     } else {
@@ -1354,37 +1588,83 @@
             }
             
             // Tambahkan pesan ke UI
-            function addMessageToUI(messageData, isSentByCurrentUser = false) {
+            function addMessageToUI(messageData, messageKey, isSentByCurrentUser = false) {
                 emptyState.style.display = 'none';
                 
                 const messageElement = document.createElement('div');
                 messageElement.className = `message ${isSentByCurrentUser ? 'sent' : 'received'}`;
+                messageElement.setAttribute('data-key', messageKey);
                 
                 const avatarInitial = messageData.sender.charAt(0).toUpperCase();
                 const avatarColor = messageData.color || getRandomColor();
                 
                 messageElement.innerHTML = `
+                    <input type="checkbox" class="message-select-checkbox" style="display: none;" data-key="${messageKey}">
                     <div class="message-avatar" style="background: linear-gradient(to right, ${avatarColor}, ${adjustColor(avatarColor, 20)});">${avatarInitial}</div>
                     <div class="message-content">
                         <div class="message-sender">${messageData.sender}</div>
                         <div class="message-text">${messageData.text}</div>
                         <div class="message-time">${formatTime(messageData.timestamp)}</div>
                     </div>
+                    <div class="message-actions">
+                        <button class="message-action-btn" onclick="deleteSingleMessage('${messageKey}')">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
                 `;
                 
                 messagesContainer.appendChild(messageElement);
                 scrollToBottom();
+                
+                // Tambahkan event listener untuk checkbox
+                const checkbox = messageElement.querySelector('.message-select-checkbox');
+                checkbox.addEventListener('change', function() {
+                    toggleMessageSelection(messageKey, this.checked);
+                });
+            }
+            
+            // Toggle pilihan pesan
+            function toggleMessageSelection(messageKey, isChecked) {
+                if (isChecked) {
+                    if (!selectedMessages.includes(messageKey)) {
+                        selectedMessages.push(messageKey);
+                        document.querySelector(`.message[data-key="${messageKey}"]`).classList.add('selected');
+                    }
+                } else {
+                    const index = selectedMessages.indexOf(messageKey);
+                    if (index > -1) {
+                        selectedMessages.splice(index, 1);
+                        document.querySelector(`.message[data-key="${messageKey}"]`).classList.remove('selected');
+                    }
+                }
+                
+                updateDeleteButton();
+            }
+            
+            // Update tampilan tombol hapus
+            function updateDeleteButton() {
+                if (selectedMessages.length > 0) {
+                    deleteSelectedBtn.innerHTML = `<i class="fas fa-trash-alt"></i> Hapus (${selectedMessages.length})`;
+                    deleteSelectedBtn.style.display = 'flex';
+                } else {
+                    deleteSelectedBtn.style.display = 'none';
+                }
             }
             
             // Load pesan dari Firebase
             function loadMessages() {
                 if (!currentSession.messagesRef) return;
                 
+                // Clear existing messages
+                messagesContainer.innerHTML = '';
+                messagesContainer.appendChild(emptyState);
+                
                 // Batasi hanya 50 pesan terakhir
                 currentSession.messagesRef.limitToLast(50).on('child_added', function(snapshot) {
                     const messageData = snapshot.val();
+                    const messageKey = snapshot.key;
                     const isSentByCurrentUser = messageData.sender === currentUser.name;
-                    addMessageToUI(messageData, isSentByCurrentUser);
+                    addMessageToUI(messageData, messageKey, isSentByCurrentUser);
                 });
             }
             
@@ -1538,60 +1818,76 @@
             }
             
             // Join atau buat sesi
-            function startSession() {
-                const username = usernameInput.value.trim();
-                const action = sessionAction.value;
-                let sessionId = sessionIdInput.value.trim().toUpperCase();
+            function startSession(sessionId = null, username = null) {
+                const usernameValue = username || usernameInput.value.trim();
+                const action = sessionId ? 'join' : sessionAction.value;
+                let sessionIdValue = sessionId || sessionIdInput.value.trim().toUpperCase();
                 
-                if (username === '') {
+                if (usernameValue === '') {
                     showNotification("Silakan masukkan nama pengguna!", 'error');
                     return;
                 }
                 
                 // Set user info
-                currentUser.name = username;
+                currentUser.name = usernameValue;
                 currentUser.color = getRandomColor();
                 userAvatar.textContent = currentUser.name.charAt(0).toUpperCase();
                 userAvatar.style.background = `linear-gradient(to right, ${currentUser.color}, ${adjustColor(currentUser.color, 20)})`;
                 usernameDisplay.textContent = currentUser.name;
                 
                 // Generate atau validasi session ID
-                if (action === 'create') {
-                    sessionId = generateSessionId();
-                } else if (action === 'join') {
-                    if (sessionId === '') {
+                if (!sessionId && action === 'create') {
+                    sessionIdValue = generateSessionId();
+                } else if (!sessionId && action === 'join') {
+                    if (sessionIdValue === '') {
                         showNotification("Silakan masukkan ID sesi!", 'error');
                         return;
                     }
                     
                     // Validasi format session ID
-                    if (!/^[A-Z0-9]{4,8}$/.test(sessionId)) {
+                    if (!/^[A-Z0-9]{4,8}$/.test(sessionIdValue)) {
                         showNotification("ID sesi harus 4-8 karakter huruf/angka!", 'error');
                         return;
                     }
                 }
                 
-                // Set current session
-                currentSession.id = sessionId;
-                currentSession.name = `Sesi ${sessionId}`;
+                // Cek apakah sesi sudah ada di daftar
+                const existingSessionIndex = sessions.findIndex(s => s.id === sessionIdValue);
                 
-                // Set referensi Firebase untuk sesi ini
-                const sessionPath = `sessions/${sessionId}`;
-                currentSession.messagesRef = database.ref(`${sessionPath}/messages`);
-                currentSession.usersRef = database.ref(`${sessionPath}/users`);
-                currentSession.typingRef = database.ref(`${sessionPath}/typing`);
-                
-                messagesRef = currentSession.messagesRef;
-                usersRef = currentSession.usersRef;
-                typingRef = currentSession.typingRef;
+                if (existingSessionIndex === -1) {
+                    // Buat sesi baru
+                    const newSession = {
+                        id: sessionIdValue,
+                        name: `Sesi ${sessionIdValue}`,
+                        messagesRef: database.ref(`sessions/${sessionIdValue}/messages`),
+                        usersRef: database.ref(`sessions/${sessionIdValue}/users`),
+                        typingRef: database.ref(`sessions/${sessionIdValue}/typing`)
+                    };
+                    
+                    sessions.push(newSession);
+                    activeSessionIndex = sessions.length - 1;
+                    currentSession = newSession;
+                    
+                    // Tambahkan tab sesi
+                    addSessionTab(sessionIdValue);
+                } else {
+                    // Pindah ke sesi yang sudah ada
+                    activeSessionIndex = existingSessionIndex;
+                    currentSession = sessions[existingSessionIndex];
+                    
+                    // Update tab aktif
+                    updateActiveTab();
+                }
                 
                 // Update UI
-                sessionIdDisplay.textContent = sessionId;
-                chatTitle.textContent = `Sesi: ${sessionId}`;
+                sessionIdDisplay.textContent = sessionIdValue;
+                chatTitle.textContent = `Sesi: ${sessionIdValue}`;
                 
-                // Sembunyikan modal dan tampilkan chat
-                sessionModal.classList.add('hidden');
-                chatContainer.style.display = 'flex';
+                // Sembunyikan modal jika baru pertama kali
+                if (sessions.length === 1) {
+                    sessionModal.classList.add('hidden');
+                    chatContainer.style.display = 'flex';
+                }
                 
                 // Setup Firebase listeners
                 updateConnectionStatus();
@@ -1605,12 +1901,16 @@
                 }, 300);
                 
                 // Tampilkan notifikasi
-                const actionText = action === 'create' ? 'dibuat' : 'digabung';
-                showNotification(`Berhasil ${actionText} sesi ${sessionId}!`, 'info');
+                if (sessions.length === 1) {
+                    const actionText = action === 'create' ? 'dibuat' : 'digabung';
+                    showNotification(`Berhasil ${actionText} sesi ${sessionIdValue}!`, 'info');
+                } else {
+                    showNotification(`Berhasil beralih ke sesi ${sessionIdValue}!`, 'info');
+                }
                 
                 // Simpan sesi di URL untuk sharing
                 const url = new URL(window.location);
-                url.hash = sessionId;
+                url.hash = sessionIdValue;
                 window.history.replaceState({}, '', url);
             }
             
@@ -1632,8 +1932,113 @@
                 
                 // Mulai sesi
                 setTimeout(() => {
-                    startSession();
+                    startSession(randomSessionId, username);
                 }, 500);
+            }
+            
+            // Tambahkan tab sesi
+            function addSessionTab(sessionId) {
+                const tabElement = document.createElement('div');
+                tabElement.className = 'session-tab';
+                if (sessions.length === 1) {
+                    tabElement.classList.add('active');
+                }
+                tabElement.setAttribute('data-session-id', sessionId);
+                
+                tabElement.innerHTML = `
+                    <i class="fas fa-comments"></i>
+                    <span class="session-tab-name">${sessionId}</span>
+                    <button class="session-tab-close" onclick="closeSessionTab('${sessionId}', event)">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                
+                tabElement.addEventListener('click', function(e) {
+                    if (!e.target.classList.contains('session-tab-close')) {
+                        switchToSession(sessionId);
+                    }
+                });
+                
+                sessionTabs.appendChild(tabElement);
+            }
+            
+            // Pindah ke sesi lain
+            function switchToSession(sessionId) {
+                const sessionIndex = sessions.findIndex(s => s.id === sessionId);
+                if (sessionIndex !== -1) {
+                    activeSessionIndex = sessionIndex;
+                    currentSession = sessions[sessionIndex];
+                    
+                    // Update UI
+                    sessionIdDisplay.textContent = sessionId;
+                    chatTitle.textContent = `Sesi: ${sessionId}`;
+                    
+                    // Update tab aktif
+                    updateActiveTab();
+                    
+                    // Load messages for this session
+                    loadMessages();
+                    loadUsers();
+                    setupTypingDetection();
+                    
+                    showNotification(`Beralih ke sesi ${sessionId}`, 'info');
+                }
+            }
+            
+            // Update tab aktif
+            function updateActiveTab() {
+                document.querySelectorAll('.session-tab').forEach(tab => {
+                    tab.classList.remove('active');
+                    if (tab.getAttribute('data-session-id') === currentSession.id) {
+                        tab.classList.add('active');
+                    }
+                });
+            }
+            
+            // Tutup tab sesi
+            function closeSessionTab(sessionId, event) {
+                event.stopPropagation();
+                
+                const sessionIndex = sessions.findIndex(s => s.id === sessionId);
+                if (sessionIndex === -1) return;
+                
+                // Hapus user dari daftar online jika sedang aktif
+                if (currentSession.id === sessionId) {
+                    if (currentSession.usersRef) {
+                        currentSession.usersRef.child(currentUser.name).remove();
+                    }
+                }
+                
+                // Hapus dari array
+                sessions.splice(sessionIndex, 1);
+                
+                // Hapus tab dari UI
+                const tab = document.querySelector(`.session-tab[data-session-id="${sessionId}"]`);
+                if (tab) tab.remove();
+                
+                // Jika tidak ada sesi lagi, kembali ke modal
+                if (sessions.length === 0) {
+                    sessionModal.classList.remove('hidden');
+                    chatContainer.style.display = 'none';
+                    return;
+                }
+                
+                // Jika sesi yang ditutup adalah sesi aktif, pindah ke sesi lain
+                if (currentSession.id === sessionId) {
+                    const newIndex = Math.min(sessionIndex, sessions.length - 1);
+                    activeSessionIndex = newIndex;
+                    currentSession = sessions[newIndex];
+                    
+                    // Update UI
+                    sessionIdDisplay.textContent = currentSession.id;
+                    chatTitle.textContent = `Sesi: ${currentSession.id}`;
+                    updateActiveTab();
+                    loadMessages();
+                    loadUsers();
+                    setupTypingDetection();
+                } else if (activeSessionIndex > sessionIndex) {
+                    activeSessionIndex--;
+                }
             }
             
             // Salin session ID
@@ -1664,33 +2069,190 @@
             
             // Keluar dari sesi
             function leaveSession() {
-                if (confirm("Apakah Anda yakin ingin keluar dari sesi ini?")) {
-                    // Hapus user dari daftar online
-                    if (currentSession.usersRef) {
-                        currentSession.usersRef.child(currentUser.name).remove();
+                if (sessions.length <= 1) {
+                    // Jika hanya satu sesi, tampilkan konfirmasi keluar semua
+                    if (confirm("Apakah Anda yakin ingin keluar dari semua sesi?")) {
+                        // Hapus user dari daftar online
+                        if (currentSession.usersRef) {
+                            currentSession.usersRef.child(currentUser.name).remove();
+                        }
+                        
+                        // Reset state
+                        sessions = [];
+                        currentSession = {
+                            id: null,
+                            name: null,
+                            messagesRef: null,
+                            usersRef: null,
+                            typingRef: null
+                        };
+                        
+                        // Reset UI
+                        messagesContainer.innerHTML = '';
+                        emptyState.style.display = 'flex';
+                        messagesContainer.appendChild(emptyState);
+                        sessionTabs.innerHTML = '';
+                        
+                        // Tampilkan modal lagi
+                        sessionModal.classList.remove('hidden');
+                        chatContainer.style.display = 'none';
+                        
+                        // Hapus hash dari URL
+                        const url = new URL(window.location);
+                        url.hash = '';
+                        window.history.replaceState({}, '', url);
+                        
+                        showNotification("Anda telah keluar dari semua sesi", 'info');
                     }
-                    
-                    // Reset state
-                    currentSession.id = null;
-                    currentSession.messagesRef = null;
-                    currentSession.usersRef = null;
-                    currentSession.typingRef = null;
-                    
-                    // Reset UI
-                    messagesContainer.innerHTML = '';
-                    emptyState.style.display = 'flex';
-                    messagesContainer.appendChild(emptyState);
-                    
-                    // Tampilkan modal lagi
-                    sessionModal.classList.remove('hidden');
-                    chatContainer.style.display = 'none';
-                    
-                    // Hapus hash dari URL
-                    const url = new URL(window.location);
-                    url.hash = '';
-                    window.history.replaceState({}, '', url);
-                    
+                } else {
+                    // Hanya keluar dari sesi aktif
+                    closeSessionTab(currentSession.id, { stopPropagation: () => {} });
                     showNotification("Anda telah keluar dari sesi", 'info');
+                }
+            }
+            
+            // Hapus semua pesan dalam sesi
+            function endSession() {
+                if (!currentSession.messagesRef) {
+                    showNotification("Tidak ada sesi aktif", 'error');
+                    return;
+                }
+                
+                if (!confirm("Apakah Anda yakin ingin menghapus semua pesan dalam sesi ini?")) {
+                    return;
+                }
+                
+                currentSession.messagesRef.remove()
+                    .then(() => {
+                        showNotification("Semua pesan telah dihapus", 'info');
+                        emptyState.style.display = 'flex';
+                    })
+                    .catch(error => {
+                        console.error("Error menghapus pesan: ", error);
+                        showNotification("Gagal menghapus pesan", 'error');
+                    });
+            }
+            
+            // Hapus pesan tunggal
+            function deleteSingleMessage(messageKey) {
+                if (!confirm("Apakah Anda yakin ingin menghapus pesan ini?")) {
+                    return;
+                }
+                
+                currentSession.messagesRef.child(messageKey).remove()
+                    .then(() => {
+                        showNotification("Pesan telah dihapus", 'info');
+                    })
+                    .catch(error => {
+                        console.error("Error menghapus pesan: ", error);
+                        showNotification("Gagal menghapus pesan", 'error');
+                    });
+            }
+            
+            // Hapus pesan terpilih
+            function deleteSelectedMessages() {
+                if (selectedMessages.length === 0) {
+                    showNotification("Tidak ada pesan yang dipilih", 'error');
+                    return;
+                }
+                
+                if (!confirm(`Apakah Anda yakin ingin menghapus ${selectedMessages.length} pesan terpilih?`)) {
+                    return;
+                }
+                
+                const updates = {};
+                selectedMessages.forEach(key => {
+                    updates[key] = null;
+                });
+                
+                currentSession.messagesRef.update(updates)
+                    .then(() => {
+                        showNotification(`${selectedMessages.length} pesan telah dihapus`, 'info');
+                        exitSelectMode();
+                    })
+                    .catch(error => {
+                        console.error("Error menghapus pesan: ", error);
+                        showNotification("Gagal menghapus pesan", 'error');
+                    });
+            }
+            
+            // Bersihkan chat (hanya di UI)
+            function clearChat() {
+                if (messagesContainer.children.length <= 2) { // empty state + typing indicator
+                    showNotification("Tidak ada pesan untuk dibersihkan", 'info');
+                    return;
+                }
+                
+                if (!confirm("Apakah Anda yakin ingin membersihkan tampilan chat? Pesan tidak akan dihapus dari server.")) {
+                    return;
+                }
+                
+                // Simpan empty state dan typing indicator
+                const emptyStateElement = document.getElementById('emptyState');
+                const typingIndicatorElement = document.getElementById('typingIndicator');
+                
+                // Clear messages container
+                messagesContainer.innerHTML = '';
+                
+                // Tambahkan kembali empty state dan typing indicator
+                messagesContainer.appendChild(emptyStateElement);
+                messagesContainer.appendChild(typingIndicatorElement);
+                
+                showNotification("Tampilan chat telah dibersihkan", 'info');
+            }
+            
+            // Mode pilih pesan
+            function toggleSelectMode() {
+                isSelectMode = !isSelectMode;
+                
+                if (isSelectMode) {
+                    // Masuk ke mode pilih
+                    document.body.classList.add('select-mode');
+                    selectMessagesBtn.innerHTML = '<i class="fas fa-times"></i> Batal Pilih';
+                    selectMessagesBtn.classList.add('danger');
+                    
+                    // Tampilkan checkbox di semua pesan
+                    document.querySelectorAll('.message-select-checkbox').forEach(checkbox => {
+                        checkbox.style.display = 'block';
+                    });
+                } else {
+                    // Keluar dari mode pilih
+                    exitSelectMode();
+                }
+            }
+            
+            // Keluar dari mode pilih
+            function exitSelectMode() {
+                isSelectMode = false;
+                selectedMessages = [];
+                
+                document.body.classList.remove('select-mode');
+                selectMessagesBtn.innerHTML = '<i class="fas fa-check-square"></i> Pilih Pesan';
+                selectMessagesBtn.classList.remove('danger');
+                deleteSelectedBtn.style.display = 'none';
+                
+                // Sembunyikan checkbox dan hapus seleksi
+                document.querySelectorAll('.message-select-checkbox').forEach(checkbox => {
+                    checkbox.style.display = 'none';
+                    checkbox.checked = false;
+                });
+                
+                document.querySelectorAll('.message').forEach(message => {
+                    message.classList.remove('selected');
+                });
+            }
+            
+            // Toggle dark/light mode
+            function toggleTheme() {
+                const isDarkMode = document.body.classList.toggle('dark-mode');
+                const icon = themeToggle.querySelector('i');
+                
+                if (isDarkMode) {
+                    icon.className = 'fas fa-sun';
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    icon.className = 'fas fa-moon';
+                    localStorage.setItem('theme', 'light');
                 }
             }
             
@@ -1732,6 +2294,20 @@
                 }
             }
             
+            // Inisialisasi tema
+            function initTheme() {
+                const savedTheme = localStorage.getItem('theme');
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                
+                if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                    document.body.classList.add('dark-mode');
+                    themeToggle.querySelector('i').className = 'fas fa-sun';
+                } else {
+                    document.body.classList.remove('dark-mode');
+                    themeToggle.querySelector('i').className = 'fas fa-moon';
+                }
+            }
+            
             // Event Listeners
             sessionAction.addEventListener('change', function() {
                 if (this.value === 'create') {
@@ -1741,13 +2317,26 @@
                 }
             });
             
-            startSessionBtn.addEventListener('click', startSession);
+            startSessionBtn.addEventListener('click', () => startSession());
             randomSessionBtn.addEventListener('click', joinRandomSession);
             copySessionIdBtn.addEventListener('click', copySessionId);
             leaveSessionBtn.addEventListener('click', leaveSession);
+            endSessionBtn.addEventListener('click', endSession);
             sendButton.addEventListener('click', sendMessage);
             mobileMenuButton.addEventListener('click', toggleSidebarMobile);
             toggleSidebar.addEventListener('click', toggleSidebarMobile);
+            addSessionBtn.addEventListener('click', () => {
+                // Buka modal untuk sesi baru
+                sessionModal.classList.remove('hidden');
+            });
+            themeToggle.addEventListener('click', toggleTheme);
+            selectMessagesBtn.addEventListener('click', toggleSelectMode);
+            deleteSelectedBtn.addEventListener('click', deleteSelectedMessages);
+            clearChatBtn.addEventListener('click', clearChat);
+            
+            // Ekspos fungsi ke global scope untuk event handlers di HTML
+            window.closeSessionTab = closeSessionTab;
+            window.deleteSingleMessage = deleteSingleMessage;
             
             messageInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -1758,6 +2347,8 @@
             
             // Cek jika ada session ID di URL hash
             window.addEventListener('load', function() {
+                initTheme();
+                
                 const hash = window.location.hash.substring(1);
                 if (hash && /^[A-Z0-9]{4,8}$/.test(hash)) {
                     sessionAction.value = 'join';
