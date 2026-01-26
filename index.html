@@ -1666,6 +1666,20 @@
                     const isSentByCurrentUser = messageData.sender === currentUser.name;
                     addMessageToUI(messageData, messageKey, isSentByCurrentUser);
                 });
+                
+                // Tambahkan listener untuk child_removed
+                currentSession.messagesRef.on('child_removed', function(snapshot) {
+                    const messageKey = snapshot.key;
+                    const messageElement = document.querySelector(`.message[data-key="${messageKey}"]`);
+                    if (messageElement) {
+                        messageElement.remove();
+                    }
+                    
+                    // Jika tidak ada pesan lagi, tampilkan empty state
+                    if (messagesContainer.children.length === 2) { // empty state + typing indicator
+                        emptyState.style.display = 'flex';
+                    }
+                });
             }
             
             // Load users dari Firebase
@@ -1817,6 +1831,31 @@
                 }, 100);
             }
             
+            // Fungsi untuk menyimpan state ke localStorage
+            function saveStateToLocalStorage() {
+                const state = {
+                    currentUser: {
+                        name: currentUser.name,
+                        color: currentUser.color
+                    },
+                    sessions: sessions.map(session => ({
+                        id: session.id,
+                        name: session.name
+                    })),
+                    activeSessionIndex: activeSessionIndex
+                };
+                localStorage.setItem('chatAppState', JSON.stringify(state));
+            }
+            
+            // Fungsi untuk memulihkan state dari localStorage
+            function loadStateFromLocalStorage() {
+                const savedState = localStorage.getItem('chatAppState');
+                if (savedState) {
+                    return JSON.parse(savedState);
+                }
+                return null;
+            }
+            
             // Join atau buat sesi
             function startSession(sessionId = null, username = null) {
                 const usernameValue = username || usernameInput.value.trim();
@@ -1912,6 +1951,9 @@
                 const url = new URL(window.location);
                 url.hash = sessionIdValue;
                 window.history.replaceState({}, '', url);
+                
+                // Simpan state ke localStorage
+                saveStateToLocalStorage();
             }
             
             // Join sesi acak
@@ -1981,6 +2023,9 @@
                     loadUsers();
                     setupTypingDetection();
                     
+                    // Simpan state ke localStorage
+                    saveStateToLocalStorage();
+                    
                     showNotification(`Beralih ke sesi ${sessionId}`, 'info');
                 }
             }
@@ -2020,6 +2065,9 @@
                 if (sessions.length === 0) {
                     sessionModal.classList.remove('hidden');
                     chatContainer.style.display = 'none';
+                    
+                    // Hapus state dari localStorage
+                    localStorage.removeItem('chatAppState');
                     return;
                 }
                 
@@ -2039,6 +2087,9 @@
                 } else if (activeSessionIndex > sessionIndex) {
                     activeSessionIndex--;
                 }
+                
+                // Simpan state ke localStorage
+                saveStateToLocalStorage();
             }
             
             // Salin session ID
@@ -2102,6 +2153,9 @@
                         url.hash = '';
                         window.history.replaceState({}, '', url);
                         
+                        // Hapus state dari localStorage
+                        localStorage.removeItem('chatAppState');
+                        
                         showNotification("Anda telah keluar dari semua sesi", 'info');
                     }
                 } else {
@@ -2111,7 +2165,7 @@
                 }
             }
             
-            // Hapus semua pesan dalam sesi
+            // Hapus semua pesan dalam sesi - SECARA REALTIME
             function endSession() {
                 if (!currentSession.messagesRef) {
                     showNotification("Tidak ada sesi aktif", 'error');
@@ -2126,6 +2180,10 @@
                     .then(() => {
                         showNotification("Semua pesan telah dihapus", 'info');
                         emptyState.style.display = 'flex';
+                        
+                        // Update UI secara realtime
+                        messagesContainer.innerHTML = '';
+                        messagesContainer.appendChild(emptyState);
                     })
                     .catch(error => {
                         console.error("Error menghapus pesan: ", error);
@@ -2142,6 +2200,8 @@
                 currentSession.messagesRef.child(messageKey).remove()
                     .then(() => {
                         showNotification("Pesan telah dihapus", 'info');
+                        
+                        // Pesan akan otomatis dihapus dari UI melalui listener child_removed
                     })
                     .catch(error => {
                         console.error("Error menghapus pesan: ", error);
@@ -2149,7 +2209,7 @@
                     });
             }
             
-            // Hapus pesan terpilih
+            // Hapus pesan terpilih - SECARA REALTIME
             function deleteSelectedMessages() {
                 if (selectedMessages.length === 0) {
                     showNotification("Tidak ada pesan yang dipilih", 'error');
@@ -2168,7 +2228,21 @@
                 currentSession.messagesRef.update(updates)
                     .then(() => {
                         showNotification(`${selectedMessages.length} pesan telah dihapus`, 'info');
+                        
+                        // Hapus elemen dari UI secara langsung
+                        selectedMessages.forEach(key => {
+                            const messageElement = document.querySelector(`.message[data-key="${key}"]`);
+                            if (messageElement) {
+                                messageElement.remove();
+                            }
+                        });
+                        
                         exitSelectMode();
+                        
+                        // Cek jika tidak ada pesan lagi
+                        if (messagesContainer.children.length === 2) { // empty state + typing indicator
+                            emptyState.style.display = 'flex';
+                        }
                     })
                     .catch(error => {
                         console.error("Error menghapus pesan: ", error);
@@ -2176,7 +2250,7 @@
                     });
             }
             
-            // Bersihkan chat (hanya di UI)
+            // Bersihkan chat (hanya di UI) - SECARA REALTIME
             function clearChat() {
                 if (messagesContainer.children.length <= 2) { // empty state + typing indicator
                     showNotification("Tidak ada pesan untuk dibersihkan", 'info');
@@ -2187,16 +2261,18 @@
                     return;
                 }
                 
-                // Simpan empty state dan typing indicator
+                // Clear messages container secara langsung
                 const emptyStateElement = document.getElementById('emptyState');
                 const typingIndicatorElement = document.getElementById('typingIndicator');
                 
-                // Clear messages container
                 messagesContainer.innerHTML = '';
                 
                 // Tambahkan kembali empty state dan typing indicator
                 messagesContainer.appendChild(emptyStateElement);
                 messagesContainer.appendChild(typingIndicatorElement);
+                
+                // Tampilkan empty state
+                emptyState.style.display = 'flex';
                 
                 showNotification("Tampilan chat telah dibersihkan", 'info');
             }
@@ -2349,17 +2425,68 @@
             window.addEventListener('load', function() {
                 initTheme();
                 
-                const hash = window.location.hash.substring(1);
-                if (hash && /^[A-Z0-9]{4,8}$/.test(hash)) {
-                    sessionAction.value = 'join';
-                    sessionIdInput.value = hash;
-                    sessionIdGroup.style.display = 'block';
+                // Coba muat state dari localStorage
+                const savedState = loadStateFromLocalStorage();
+                if (savedState) {
+                    // Pulihkan currentUser
+                    currentUser.name = savedState.currentUser.name;
+                    currentUser.color = savedState.currentUser.color;
                     
-                    // Auto-focus pada username
-                    setTimeout(() => {
-                        usernameInput.focus();
-                        usernameInput.select();
-                    }, 100);
+                    // Pulihkan sessions
+                    savedState.sessions.forEach(sessionInfo => {
+                        const session = {
+                            id: sessionInfo.id,
+                            name: sessionInfo.name,
+                            messagesRef: database.ref(`sessions/${sessionInfo.id}/messages`),
+                            usersRef: database.ref(`sessions/${sessionInfo.id}/users`),
+                            typingRef: database.ref(`sessions/${sessionInfo.id}/typing`)
+                        };
+                        sessions.push(session);
+                        addSessionTab(sessionInfo.id);
+                    });
+                    
+                    // Pulihkan activeSessionIndex
+                    activeSessionIndex = savedState.activeSessionIndex;
+                    if (sessions.length > 0) {
+                        currentSession = sessions[activeSessionIndex];
+                        
+                        // Update UI
+                        sessionIdDisplay.textContent = currentSession.id;
+                        chatTitle.textContent = `Sesi: ${currentSession.id}`;
+                        userAvatar.textContent = currentUser.name.charAt(0).toUpperCase();
+                        userAvatar.style.background = `linear-gradient(to right, ${currentUser.color}, ${adjustColor(currentUser.color, 20)})`;
+                        usernameDisplay.textContent = currentUser.name;
+                        
+                        // Sembunyikan modal dan tampilkan chat container
+                        sessionModal.classList.add('hidden');
+                        chatContainer.style.display = 'flex';
+                        
+                        // Setup Firebase listeners
+                        updateConnectionStatus();
+                        loadMessages();
+                        loadUsers();
+                        setupTypingDetection();
+                        
+                        // Update tab aktif
+                        updateActiveTab();
+                        
+                        // Tampilkan notifikasi
+                        showNotification(`Selamat datang kembali, ${currentUser.name}!`, 'info');
+                    }
+                } else {
+                    // Jika tidak ada state yang disimpan, cek hash di URL
+                    const hash = window.location.hash.substring(1);
+                    if (hash && /^[A-Z0-9]{4,8}$/.test(hash)) {
+                        sessionAction.value = 'join';
+                        sessionIdInput.value = hash;
+                        sessionIdGroup.style.display = 'block';
+                        
+                        // Auto-focus pada username
+                        setTimeout(() => {
+                            usernameInput.focus();
+                            usernameInput.select();
+                        }, 100);
+                    }
                 }
             });
             
