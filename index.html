@@ -1548,7 +1548,7 @@
                 connectedRef.on("value", function(snap) {
                     if (snap.val() === true) {
                         statusIndicator.classList.add('connected');
-                        statusText.textContent = "Terhubung";
+                        statusText.textContent = "Connected To Server";
                         
                         // Simpan user online di sesi saat ini
                         if (currentSession.usersRef) {
@@ -2526,3 +2526,4 @@
     </script>
 </body>
 </html>
+
