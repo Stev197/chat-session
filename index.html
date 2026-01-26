@@ -2,1627 +2,1200 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatApp - Login & Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chat Session</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            --secondary-gradient: linear-gradient(to right, #2575fc, #6a11cb);
+            --chat-sent: linear-gradient(to right, #2575fc, #6a11cb);
+            --chat-received: #ffffff;
+            --online-color: #2ed573;
+            --offline-color: #ff4757;
+            --text-dark: #333333;
+            --text-light: #666666;
+            --text-white: #ffffff;
+            --shadow-light: 0 2px 10px rgba(0, 0, 0, 0.1);
+            --shadow-medium: 0 5px 20px rgba(0, 0, 0, 0.15);
+            --shadow-heavy: 0 10px 30px rgba(0, 0, 0, 0.2);
+            --radius-small: 8px;
+            --radius-medium: 12px;
+            --radius-large: 20px;
+            --radius-circle: 50%;
+            --transition-fast: 0.2s;
+            --transition-medium: 0.3s;
+            --transition-slow: 0.5s;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            font-family: 'Poppins', sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        :root {
-            --primary-color: #25D366;
-            --secondary-color: #128C7E;
-            --light-green: #DCF8C6;
-            --light-gray: #F0F2F5;
-            --medium-gray: #E0E0E0;
-            --dark-gray: #3B4A54;
-            --white: #FFFFFF;
-            --chat-bg: #EFEAE2;
-            --border-color: #E9EDEF;
-            --shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            --sidebar-width: 30%;
-            --header-height: 60px;
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
         }
 
         body {
-            background-color: #F0F2F5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        /* Login Screen */
-        .login-screen {
-            width: 100%;
-            max-width: 400px;
-            background-color: var(--white);
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            padding: 40px 30px;
-            text-align: center;
-        }
-
-        .login-screen h2 {
-            color: var(--secondary-color);
-            margin-bottom: 30px;
-            font-size: 28px;
-        }
-
-        .login-screen i {
-            font-size: 80px;
-            color: var(--secondary-color);
-            margin-bottom: 20px;
-            opacity: 0.8;
-        }
-
-        .login-screen .form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-
-        .login-screen label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--dark-gray);
-            font-size: 14px;
-        }
-
-        .login-screen input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid var(--medium-gray);
-            border-radius: 5px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
-
-        .login-screen input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-        }
-
-        .login-screen button {
-            width: 100%;
-            padding: 12px;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .login-screen button:hover {
-            background-color: #1da851;
-        }
-
-        .login-message {
-            margin-top: 15px;
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 14px;
-            display: none;
-        }
-
-        .login-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .login-error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        /* Chat Container */
-        .container {
-            width: 100%;
-            max-width: 1400px;
-            height: 90vh;
-            background-color: var(--white);
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            display: flex;
-            display: none; /* Hidden by default, shown after login */
-        }
-
-        /* Sidebar Styles */
-        .sidebar {
-            width: var(--sidebar-width);
-            background-color: var(--white);
-            border-right: 1px solid var(--border-color);
+            background: var(--primary-gradient);
+            color: var(--text-dark);
             display: flex;
             flex-direction: column;
+        }
+
+        /* Mobile First Approach */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100vh;
+            height: 100dvh; /* Untuk browser modern */
+            background-color: rgba(255, 255, 255, 0.98);
             overflow: hidden;
+            position: relative;
         }
 
         /* Header Styles */
-        .header {
-            background-color: var(--light-gray);
-            padding: 10px 16px;
+        .app-header {
+            background: var(--secondary-gradient);
+            color: var(--text-white);
+            padding: 12px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            height: var(--header-height);
+            min-height: 60px;
+            flex-shrink: 0;
+            box-shadow: var(--shadow-light);
+            z-index: 100;
         }
 
-        .user-profile {
+        .logo-container {
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .profile-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            overflow: hidden;
-            cursor: pointer;
-            position: relative;
+        .logo-icon {
+            font-size: 24px;
         }
 
-        .profile-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+        .logo-text {
+            font-size: 18px;
+            font-weight: 600;
+            white-space: nowrap;
         }
 
-        .profile-avatar .avatar-placeholder {
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .connection-status {
             display: flex;
             align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 18px;
-        }
-
-        .profile-avatar .edit-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(0, 0, 0, 0.5);
-            color: white;
+            gap: 6px;
             font-size: 12px;
-            text-align: center;
-            padding: 2px;
-            display: none;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: var(--radius-large);
         }
 
-        .profile-avatar:hover .edit-overlay {
-            display: block;
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: var(--radius-circle);
+            background-color: var(--offline-color);
         }
 
-        .user-info h4 {
-            font-size: 15px;
-            color: var(--dark-gray);
+        .status-indicator.connected {
+            background-color: var(--online-color);
         }
 
-        .user-info p {
-            font-size: 12px;
-            color: #667781;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 15px;
-        }
-
-        .header-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: var(--white);
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: #54656F;
-            font-size: 18px;
-            transition: all 0.3s ease;
-        }
-
-        .header-btn:hover {
-            background-color: var(--medium-gray);
-        }
-
-        /* Search Bar */
-        .search-bar {
+        /* Session Info */
+        .session-info-bar {
+            background-color: #f0f5ff;
             padding: 10px 16px;
-            background-color: var(--white);
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .search-container {
-            background-color: var(--light-gray);
-            border-radius: 8px;
-            padding: 8px 12px;
+            border-bottom: 1px solid #e0e7ff;
             display: flex;
+            justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
             gap: 10px;
+            min-height: 50px;
+            flex-shrink: 0;
         }
 
-        .search-container i {
-            color: #667781;
-            font-size: 14px;
-        }
-
-        .search-container input {
-            flex: 1;
-            border: none;
-            background: transparent;
-            outline: none;
-            font-size: 14px;
-            color: var(--dark-gray);
-        }
-
-        /* Chat List */
-        .chat-list {
-            flex: 1;
-            overflow-y: auto;
-            background-color: var(--white);
-        }
-
-        .chat-item {
+        .session-id-container {
             display: flex;
             align-items: center;
-            padding: 12px 16px;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .session-id-label {
+            font-size: 14px;
+            color: var(--text-light);
+        }
+
+        .session-id {
+            background: white;
+            padding: 6px 12px;
+            border-radius: var(--radius-medium);
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+            border: 1px dashed #6a11cb;
+            color: #6a11cb;
+            font-size: 14px;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .session-action-buttons {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .icon-button {
+            background: #6a11cb;
+            color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-circle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            transition: all 0.3s ease;
-            border-bottom: 1px solid var(--border-color);
-            position: relative;
+            font-size: 14px;
+            transition: all var(--transition-medium);
         }
 
-        .chat-item:hover {
-            background-color: #F5F5F5;
+        .icon-button:hover {
+            transform: scale(1.1);
+            box-shadow: var(--shadow-light);
         }
 
-        .chat-item.active {
-            background-color: #E8F5E9;
+        .text-button {
+            background: transparent;
+            color: #6a11cb;
+            border: 1px solid #6a11cb;
+            padding: 6px 12px;
+            border-radius: var(--radius-medium);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
         }
 
-        .chat-avatar {
-            width: 49px;
-            height: 49px;
-            border-radius: 50%;
+        .user-count-badge {
+            background: white;
+            padding: 6px 12px;
+            border-radius: var(--radius-medium);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            display: flex;
+            flex: 1;
             overflow: hidden;
-            margin-right: 12px;
             position: relative;
         }
 
-        .chat-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background-color: #f8f9fa;
+            border-right: 1px solid #eaeaea;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            transition: all var(--transition-medium);
+            z-index: 10;
+            flex-shrink: 0;
+            overflow-y: auto;
         }
 
-        .chat-avatar .avatar-placeholder {
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+            width: 0;
+            padding: 0;
+            border: none;
+        }
+
+        .sidebar-toggle {
+            position: absolute;
+            top: 10px;
+            right: -12px;
+            background: #6a11cb;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: var(--radius-circle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 11;
+            font-size: 12px;
+        }
+
+        .user-profile-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #eaeaea;
+        }
+
+        .user-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-circle);
+            background: var(--secondary-gradient);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-weight: bold;
             font-size: 18px;
+            font-weight: 600;
+            flex-shrink: 0;
         }
 
-        .chat-info {
+        .user-details {
             flex: 1;
             min-width: 0;
         }
 
-        .chat-info h4 {
+        .user-details h3 {
             font-size: 16px;
-            font-weight: 500;
-            color: var(--dark-gray);
-            margin-bottom: 2px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .chat-time {
-            font-size: 12px;
-            color: #667781;
-        }
-
-        .chat-preview {
-            font-size: 14px;
-            color: #667781;
+            margin-bottom: 4px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            display: flex;
-            align-items: center;
-            gap: 4px;
         }
 
-        .unread-badge {
-            background-color: var(--primary-color);
-            color: white;
+        .user-details p {
             font-size: 12px;
-            font-weight: bold;
-            min-width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-left: auto;
+            color: var(--text-light);
         }
 
-        /* Main Chat Area */
-        .main-chat {
+        .active-users-section {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section-title {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: var(--text-dark);
+        }
+
+        .user-list {
+            list-style: none;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .user-list li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            font-size: 14px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .user-list li:last-child {
+            border-bottom: none;
+        }
+
+        .user-list li .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: var(--radius-circle);
+            background-color: var(--online-color);
+            flex-shrink: 0;
+        }
+
+        /* Chat Area */
+        .chat-area {
             flex: 1;
             display: flex;
             flex-direction: column;
-            background-color: var(--chat-bg);
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='%23000000' fill-opacity='0.05'%3E%3Cpath d='M0 0h40v40H0V0zm40 40h40v40H40V40zm0-40h2l-2 2V0zm0 4l4-4h2l-6 6V4zm0 4l8-8h2l-10 10V8zm0 4L52 0h2L42 16v-2zm0 4L56 0h2L44 20v-2zm0 4L60 0h2L46 24v-2zm0 4L64 0h2L48 28v-2zm0 4L68 0h2L50 32v-2zm0 4L72 0h2L52 36v-2zm0 4L76 0h2L54 40v-2zm0 4L80 0v2L56 44v-2z'/%3E%3C/g%3E%3C/svg%3E");
+            overflow: hidden;
+            min-width: 0;
         }
 
         .chat-header {
-            background-color: var(--light-gray);
-            padding: 10px 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            height: var(--header-height);
+            padding: 12px 16px;
+            border-bottom: 1px solid #eaeaea;
+            background-color: white;
+            flex-shrink: 0;
         }
 
-        .chat-contact-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        .chat-header h2 {
+            font-size: 18px;
+            color: var(--text-dark);
+            margin-bottom: 4px;
         }
 
-        .chat-contact-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            overflow: hidden;
+        .chat-header p {
+            font-size: 12px;
+            color: var(--text-light);
         }
 
-        .chat-contact-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .chat-contact-details h3 {
-            font-size: 16px;
-            font-weight: 500;
-            color: var(--dark-gray);
-            margin-bottom: 2px;
-        }
-
-        .chat-contact-details p {
-            font-size: 13px;
-            color: #667781;
-        }
-
-        /* Messages Container */
         .messages-container {
             flex: 1;
-            padding: 20px;
+            padding: 16px;
             overflow-y: auto;
+            background-color: #f9f9f9;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 12px;
+            min-height: 0;
         }
 
         .message {
-            max-width: 65%;
-            padding: 8px 12px;
-            border-radius: 8px;
-            position: relative;
+            display: flex;
+            max-width: 85%;
+            animation: fadeIn 0.3s ease-out;
             word-wrap: break-word;
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.received {
+            align-self: flex-start;
+        }
+
+        .message.sent {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-circle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            flex-shrink: 0;
+            margin: 0 8px;
+        }
+
+        .message.received .message-avatar {
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            color: white;
+        }
+
+        .message.sent .message-avatar {
+            background: var(--secondary-gradient);
+            color: white;
+        }
+
+        .message-content {
+            padding: 10px 14px;
+            border-radius: 18px;
+            box-shadow: var(--shadow-light);
+            max-width: calc(100% - 48px);
+        }
+
+        .message.received .message-content {
+            background-color: white;
+            border-top-left-radius: 4px;
+            color: var(--text-dark);
+        }
+
+        .message.sent .message-content {
+            background: var(--chat-sent);
+            color: white;
+            border-top-right-radius: 4px;
+        }
+
+        .message-text {
             font-size: 14px;
             line-height: 1.4;
         }
 
-        .message-sent {
-            background-color: var(--light-green);
-            margin-left: auto;
-            border-top-right-radius: 0;
-            align-self: flex-end;
+        .message-time {
+            font-size: 10px;
+            margin-top: 4px;
+            opacity: 0.8;
+            text-align: right;
         }
 
-        .message-received {
-            background-color: var(--white);
-            border-top-left-radius: 0;
-            align-self: flex-start;
-            box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
+        .message.sent .message-time {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .message.received .message-time {
+            color: var(--text-light);
         }
 
         .message-sender {
-            font-weight: 600;
-            font-size: 12px;
-            margin-bottom: 4px;
-            color: var(--secondary-color);
-        }
-
-        .message-content {
-            margin-bottom: 4px;
-        }
-
-        .message-time {
             font-size: 11px;
-            color: #667781;
-            text-align: right;
-            margin-top: 2px;
+            font-weight: 600;
+            margin-bottom: 2px;
         }
 
-        .message-image, .message-video {
-            max-width: 100%;
-            border-radius: 5px;
-            margin-top: 5px;
-            display: block;
+        .message.received .message-sender {
+            color: #ff7e5f;
+        }
+
+        .message.sent .message-sender {
+            color: rgba(255, 255, 255, 0.9);
         }
 
         /* Input Container */
         .input-container {
-            background-color: var(--light-gray);
-            padding: 10px 16px;
-            border-top: 1px solid var(--border-color);
+            padding: 12px 16px;
+            background-color: white;
+            border-top: 1px solid #eaeaea;
             display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .emoji-btn, .attach-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: none;
-            background-color: var(--white);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            color: #54656F;
-            font-size: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .emoji-btn:hover, .attach-btn:hover {
-            background-color: var(--medium-gray);
+            gap: 10px;
+            flex-shrink: 0;
         }
 
         .message-input {
             flex: 1;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 20px;
-            font-size: 15px;
-            background-color: var(--white);
+            padding: 10px 16px;
+            border: 1px solid #ddd;
+            border-radius: var(--radius-large);
+            font-size: 14px;
             outline: none;
-            resize: none;
-            max-height: 100px;
-            font-family: inherit;
+            transition: all var(--transition-medium);
+            min-width: 0;
         }
 
-        .send-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
+        .message-input:focus {
+            border-color: #6a11cb;
+            box-shadow: 0 0 0 2px rgba(106, 17, 203, 0.1);
+        }
+
+        .send-button {
+            background: var(--secondary-gradient);
+            color: white;
             border: none;
-            background-color: var(--primary-color);
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-circle);
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
             cursor: pointer;
-            color: var(--white);
-            font-size: 18px;
-            transition: all 0.3s ease;
+            transition: all var(--transition-medium);
+            font-size: 16px;
+            flex-shrink: 0;
         }
 
-        .send-btn:hover {
-            background-color: #1da851;
+        .send-button:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-light);
         }
 
-        /* Modal Styles */
-        .modal {
-            display: none;
+        .send-button:active {
+            transform: scale(0.98);
+        }
+
+        /* Session Modal */
+        .session-modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
             justify-content: center;
             align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            padding: 16px;
         }
 
-        .modal.active {
-            display: flex;
+        .session-modal.hidden {
+            display: none;
         }
 
-        .modal-content {
-            background-color: var(--white);
-            border-radius: 10px;
-            width: 90%;
+        .session-form {
+            background: white;
+            width: 100%;
             max-width: 500px;
-            max-height: 80vh;
+            border-radius: var(--radius-large);
+            padding: 32px 24px;
+            box-shadow: var(--shadow-heavy);
+            animation: modalSlideIn 0.5s ease-out;
+            max-height: 90vh;
             overflow-y: auto;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
 
-        .modal-header {
-            padding: 20px;
-            border-bottom: 1px solid var(--medium-gray);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .modal-body {
-            padding: 20px;
-        }
-
-        .modal-footer {
-            padding: 20px;
-            border-top: 1px solid var(--medium-gray);
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-
-        .close-modal {
-            background: none;
-            border: none;
+        .session-form h2 {
             font-size: 24px;
-            cursor: pointer;
-            color: var(--dark-gray);
+            margin-bottom: 8px;
+            background: var(--secondary-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-align: center;
         }
 
-        /* Form Styles */
+        .session-form p {
+            color: var(--text-light);
+            margin-bottom: 24px;
+            font-size: 14px;
+            text-align: center;
+        }
+
         .form-group {
             margin-bottom: 20px;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--dark-gray);
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: var(--text-dark);
+            font-size: 14px;
         }
 
         .form-control {
             width: 100%;
-            padding: 12px 15px;
-            border: 1px solid var(--medium-gray);
-            border-radius: 5px;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: var(--radius-medium);
             font-size: 16px;
+            transition: all var(--transition-medium);
         }
 
         .form-control:focus {
+            border-color: #6a11cb;
+            box-shadow: 0 0 0 3px rgba(106, 17, 203, 0.1);
             outline: none;
-            border-color: var(--primary-color);
-        }
-
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
         }
 
         .btn-primary {
-            background-color: var(--primary-color);
-            color: var(--white);
+            background: var(--secondary-gradient);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: var(--radius-medium);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all var(--transition-medium);
+            margin-top: 8px;
         }
 
         .btn-primary:hover {
-            background-color: #1da851;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
         }
 
         .btn-secondary {
-            background-color: var(--white);
-            color: var(--secondary-color);
-            border: 1px solid var(--secondary-color);
+            background: transparent;
+            color: #6a11cb;
+            border: 2px solid #6a11cb;
+            padding: 14px 24px;
+            border-radius: var(--radius-medium);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all var(--transition-medium);
+            margin-top: 8px;
         }
 
         .btn-secondary:hover {
-            background-color: #f0f0f0;
+            background: #f0f5ff;
         }
 
-        /* Admin Dashboard */
-        .admin-dashboard {
+        .session-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .session-actions button {
+            flex: 1;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 16px;
+            background-color: var(--online-color);
+            color: white;
+            padding: 12px 16px;
+            border-radius: var(--radius-medium);
+            box-shadow: var(--shadow-medium);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 2000;
+            transform: translateX(150%);
+            transition: transform var(--transition-slow) cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            max-width: calc(100% - 32px);
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            background-color: var(--offline-color);
+        }
+
+        .notification.info {
+            background-color: #3742fa;
+        }
+
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            font-size: 12px;
+            color: var(--text-light);
+            font-style: italic;
+            background: white;
+            border-radius: var(--radius-medium);
+            align-self: flex-start;
+            box-shadow: var(--shadow-light);
+            margin-bottom: 8px;
+        }
+
+        .typing-indicator .dots {
+            display: flex;
+            gap: 3px;
+        }
+
+        .typing-indicator .dots span {
+            width: 6px;
+            height: 6px;
+            border-radius: var(--radius-circle);
+            background-color: var(--text-light);
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-indicator .dots span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator .dots span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 16px;
+            color: var(--text-light);
+            flex: 1;
             display: flex;
             flex-direction: column;
-            height: 100%;
-        }
-
-        .dashboard-header {
-            background-color: var(--secondary-color);
-            color: white;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .dashboard-content {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-        }
-
-        .stats-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background-color: var(--white);
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: var(--shadow);
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .stat-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
             justify-content: center;
-            font-size: 24px;
-            color: white;
+            align-items: center;
         }
 
-        .stat-online {
-            background-color: var(--primary-color);
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            color: #ddd;
         }
 
-        .stat-offline {
-            background-color: #FF6B6B;
+        .empty-state h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: var(--text-dark);
         }
 
-        .stat-total {
-            background-color: #4ECDC4;
-        }
-
-        .stat-suspended {
-            background-color: #FFA726;
-        }
-
-        .stat-info h3 {
+        .empty-state p {
             font-size: 14px;
-            color: var(--dark-gray);
-            margin-bottom: 5px;
         }
 
-        .stat-info .stat-number {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--dark-gray);
-        }
-
-        .admin-section {
-            background-color: var(--white);
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: var(--shadow);
-        }
-
-        .admin-section h3 {
-            margin-bottom: 15px;
-            color: var(--secondary-color);
-            border-bottom: 1px solid var(--medium-gray);
-            padding-bottom: 10px;
-        }
-
-        .user-management-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-        .user-management-table th {
-            background-color: var(--light-gray);
-            padding: 12px 15px;
-            text-align: left;
-            font-weight: 600;
-            color: var(--dark-gray);
-            border-bottom: 1px solid var(--medium-gray);
-        }
-
-        .user-management-table td {
-            padding: 12px 15px;
-            border-bottom: 1px solid var(--medium-gray);
-        }
-
-        .user-management-table tr:hover {
-            background-color: var(--light-gray);
-        }
-
-        .user-status {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .status-online {
-            background-color: #D4EDDA;
-            color: #155724;
-        }
-
-        .status-offline {
-            background-color: #F8D7DA;
-            color: #721C24;
-        }
-
-        .status-suspended {
-            background-color: #FFF3CD;
-            color: #856404;
-        }
-
-        .status-admin {
-            background-color: #D1ECF1;
-            color: #0C5460;
-        }
-
-        .status-user {
-            background-color: #E8F5E9;
-            color: #2E7D32;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .btn-xs {
-            padding: 5px 10px;
-            font-size: 12px;
-            min-width: 80px;
-        }
-
-        .btn-suspend {
-            background-color: #FFA726;
-            color: white;
-        }
-
-        .btn-unsuspend {
-            background-color: #4ECDC4;
-            color: white;
-        }
-
-        .btn-kick {
-            background-color: #FF6B6B;
-            color: white;
-        }
-
-        .btn-reset {
-            background-color: #9C27B0;
-            color: white;
-        }
-
-        .btn-role {
-            background-color: #2196F3;
-            color: white;
-        }
-
-        .btn-edit {
-            background-color: #4CAF50;
-            color: white;
-        }
-
-        .btn-delete {
-            background-color: #F44336;
-            color: white;
-        }
-
-        .back-to-chat-btn {
-            background-color: var(--white);
-            color: var(--secondary-color);
-            border: 1px solid var(--secondary-color);
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .back-to-chat-btn:hover {
-            background-color: var(--light-gray);
-        }
-
-        .online-indicator {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 5px;
-        }
-
-        .online {
-            background-color: var(--primary-color);
-        }
-
-        .offline {
-            background-color: #CCCCCC;
-        }
-
-        .last-seen {
-            font-size: 12px;
-            color: #667781;
-        }
-
-        /* Loading Spinner */
-        .loading {
+        /* Mobile Hamburger Menu */
+        .mobile-menu-button {
             display: none;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 8px;
         }
 
-        .loading.active {
-            display: flex;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid var(--light-gray);
-            border-top: 4px solid var(--primary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-            
-            .container {
-                height: 95vh;
-            }
-            
+        /* Responsive Design */
+        /* Tablet */
+        @media (min-width: 768px) and (max-width: 1024px) {
             .sidebar {
-                width: 100%;
-            }
-            
-            .main-chat {
-                display: none;
-            }
-            
-            .main-chat.active {
-                display: flex;
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                z-index: 100;
-            }
-            
-            .admin-dashboard.active {
-                display: flex;
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                z-index: 100;
-            }
-            
-            .back-to-chats {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                color: var(--secondary-color);
-                background: none;
-                border: none;
-                font-size: 16px;
-                cursor: pointer;
+                width: 240px;
             }
             
             .message {
-                max-width: 85%;
+                max-width: 75%;
             }
             
-            .modal-content {
-                width: 95%;
-                max-width: 95%;
+            .session-form {
+                padding: 40px 32px;
+            }
+        }
+
+        /* Desktop */
+        @media (min-width: 1025px) {
+            .sidebar {
+                width: 280px;
             }
             
-            .login-screen {
-                padding: 30px 20px;
-                margin: 0 15px;
+            .message {
+                max-width: 65%;
             }
             
-            .stats-cards {
-                grid-template-columns: 1fr;
+            .session-form {
+                padding: 48px 40px;
             }
             
-            .user-management-table {
+            .session-actions {
+                gap: 16px;
+            }
+        }
+
+        /* Mobile Specific */
+        @media (max-width: 767px) {
+            .app-header {
+                padding: 10px 12px;
+                min-height: 56px;
+            }
+            
+            .logo-text {
+                font-size: 16px;
+            }
+            
+            .connection-status {
+                font-size: 11px;
+                padding: 4px 8px;
+            }
+            
+            .session-info-bar {
+                padding: 8px 12px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            
+            .session-id-container {
+                justify-content: space-between;
+            }
+            
+            .session-action-buttons {
+                justify-content: space-between;
+            }
+            
+            .user-count-badge {
+                padding: 4px 8px;
+                font-size: 12px;
+            }
+            
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100%;
+                width: 85%;
+                max-width: 300px;
+                z-index: 1000;
+                box-shadow: var(--shadow-heavy);
+            }
+            
+            .sidebar.collapsed {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar:not(.collapsed) + .chat-area::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 999;
+            }
+            
+            .mobile-menu-button {
                 display: block;
-                overflow-x: auto;
             }
             
-            .action-buttons {
+            .message-input {
+                padding: 12px 16px;
+            }
+            
+            .session-form {
+                padding: 24px 20px;
+            }
+            
+            .session-actions {
                 flex-direction: column;
             }
             
-            .btn-xs {
-                min-width: 60px;
-                font-size: 10px;
-                padding: 4px 8px;
+            .notification {
+                right: 12px;
+                left: 12px;
+                max-width: none;
             }
         }
 
-        /* Desktop specific */
-        @media (min-width: 769px) {
-            .back-to-chats {
+        /* Very small screens */
+        @media (max-width: 360px) {
+            .logo-text {
+                font-size: 14px;
+            }
+            
+            .connection-status span {
                 display: none;
             }
+            
+            .session-id {
+                font-size: 12px;
+                padding: 4px 8px;
+            }
+            
+            .text-button span {
+                display: none;
+            }
+            
+            .message-input {
+                font-size: 16px; /* Mencegah zoom di iOS */
+            }
         }
 
-        /* Status Messages */
-        .status-message {
-            padding: 10px 15px;
-            margin: 10px 0;
-            border-radius: 5px;
-            text-align: center;
-            font-weight: 500;
+        /* Landscape orientation */
+        @media (max-height: 600px) and (orientation: landscape) {
+            .app-header {
+                min-height: 50px;
+                padding: 8px 12px;
+            }
+            
+            .session-info-bar {
+                min-height: 40px;
+                padding: 6px 12px;
+            }
+            
+            .messages-container {
+                padding: 12px;
+            }
+            
+            .message {
+                max-width: 70%;
+            }
+            
+            .input-container {
+                padding: 8px 12px;
+            }
         }
 
-        .status-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+        /* Touch device optimizations */
+        @media (hover: none) and (pointer: coarse) {
+            .send-button:hover,
+            .icon-button:hover,
+            .btn-primary:hover,
+            .btn-secondary:hover {
+                transform: none;
+            }
+            
+            .message-input {
+                font-size: 16px; /* Mencegah zoom di iOS */
+            }
+            
+            .form-control {
+                font-size: 16px; /* Mencegah zoom di iOS */
+            }
         }
 
-        .status-error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --text-dark: #f0f0f0;
+                --text-light: #b0b0b0;
+                --chat-received: #2d2d2d;
+            }
+            
+            .app-container {
+                background-color: #1a1a1a;
+                color: var(--text-dark);
+            }
+            
+            .chat-header,
+            .input-container {
+                background-color: #2d2d2d;
+                border-color: #404040;
+            }
+            
+            .messages-container {
+                background-color: #121212;
+            }
+            
+            .message.received .message-content {
+                background-color: var(--chat-received);
+                color: var(--text-dark);
+            }
+            
+            .message.received .message-time {
+                color: var(--text-light);
+            }
+            
+            .sidebar {
+                background-color: #252525;
+                border-color: #404040;
+            }
+            
+            .user-profile-card {
+                border-color: #404040;
+            }
+            
+            .section-title {
+                color: var(--text-dark);
+            }
+            
+            .user-list li {
+                border-color: #404040;
+                color: var(--text-dark);
+            }
+            
+            .session-info-bar {
+                background-color: #252525;
+                border-color: #404040;
+            }
+            
+            .session-id,
+            .user-count-badge {
+                background-color: #2d2d2d;
+                color: var(--text-dark);
+            }
+            
+            .session-form {
+                background-color: #252525;
+                color: var(--text-dark);
+            }
+            
+            .form-group label {
+                color: var(--text-dark);
+            }
+            
+            .form-control {
+                background-color: #2d2d2d;
+                border-color: #404040;
+                color: var(--text-dark);
+            }
+            
+            .empty-state {
+                color: var(--text-light);
+            }
+            
+            .empty-state h3 {
+                color: var(--text-dark);
+            }
         }
 
-        /* Scrollbar Styling */
-        ::-webkit-scrollbar {
-            width: 6px;
+        /* High contrast mode */
+        @media (prefers-contrast: high) {
+            .status-indicator.connected {
+                outline: 2px solid white;
+            }
+            
+            .message-content {
+                border: 1px solid currentColor;
+            }
         }
 
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #bbb;
-            border-radius: 3px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #999;
-        }
-
-        /* Welcome Screen */
-        .welcome-screen {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            text-align: center;
-            padding: 20px;
-            background-color: var(--chat-bg);
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='%23000000' fill-opacity='0.05'%3E%3Cpath d='M0 0h40v40H0V0zm40 40h40v40H40V40zm0-40h2l-2 2V0zm0 4l4-4h2l-6 6V4zm0 4l8-8h2l-10 10V8zm0 4L52 0h2L42 16v-2zm0 4L56 0h2L44 20v-2zm0 4L60 0h2L46 24v-2zm0 4L64 0h2L48 28v-2zm0 4L68 0h2L50 32v-2zm0 4L72 0h2L52 36v-2zm0 4L76 0h2L54 40v-2zm0 4L80 0v2L56 44v-2z'/%3E%3C/g%3E%3C/svg%3E");
-        }
-
-        .welcome-screen i {
-            font-size: 120px;
-            color: var(--secondary-color);
-            opacity: 0.7;
-            margin-bottom: 20px;
-        }
-
-        .welcome-screen h2 {
-            color: var(--dark-gray);
-            margin-bottom: 10px;
-        }
-
-        .welcome-screen p {
-            color: #667781;
-            max-width: 400px;
-        }
-
-        /* Quick Start Chat */
-        .quick-start-chat {
-            padding: 15px;
-            background-color: var(--light-gray);
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .quick-start-chat h4 {
-            margin-bottom: 10px;
-            color: var(--dark-gray);
-            font-size: 14px;
-        }
-
-        .quick-chat-form {
-            display: flex;
-            gap: 10px;
-        }
-
-        .quick-chat-form input {
-            flex: 1;
-            padding: 8px 12px;
-            border: 1px solid var(--medium-gray);
-            border-radius: 5px;
-            font-size: 14px;
-        }
-
-        .quick-chat-form button {
-            padding: 8px 15px;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .quick-chat-form button:hover {
-            background-color: #1da851;
-        }
-
-        /* Tab Styles untuk Admin Panel */
-        .admin-tabs {
-            display: flex;
-            border-bottom: 1px solid var(--medium-gray);
-            margin-bottom: 20px;
-        }
-
-        .admin-tab {
-            padding: 10px 20px;
-            background: none;
-            border: none;
-            border-bottom: 3px solid transparent;
-            cursor: pointer;
-            font-weight: 600;
-            color: var(--dark-gray);
-            flex: 1;
-            text-align: center;
-        }
-
-        .admin-tab.active {
-            border-bottom-color: var(--primary-color);
-            color: var(--primary-color);
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Form untuk Tambah User */
-        .add-user-form {
-            background-color: var(--white);
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-
-        .form-row {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .form-row .form-group {
-            flex: 1;
-            margin-bottom: 0;
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Login Screen -->
-    <div class="login-screen" id="loginScreen">
-        <i class="fab fa-whatsapp"></i>
-        <h2>Anong login</h2>
-        <div class="form-group">
-            <label for="loginUsername">Username</label>
-            <input type="text" id="loginUsername" class="form-control" placeholder="Masukkan username" autocomplete="off" value="admin">
-        </div>
-        <div class="form-group">
-            <label for="loginPin">PIN (4 digit)</label>
-            <input type="password" id="loginPin" class="form-control" placeholder="Masukkan PIN" maxlength="4" autocomplete="off" value="8896">
-        </div>
-        <button class="btn btn-primary" id="loginBtn">Masuk ke Chat</button>
-        <div class="login-message" id="loginMessage"></div>
-        <div style="margin-top: 20px; font-size: 14px; color: #666;">
-            <p>Developer <strong>anonggg</strong></p>
-            <p></p>
-        </div>
-        <div style="margin-top: 15px; font-size: 12px; color: #999;">
-            <p id="firebaseStatus">Memeriksa koneksi database...</p>
+    <!-- Session Modal -->
+    <div class="session-modal" id="sessionModal">
+        <div class="session-form">
+            <h2>Chat Session</h2>
+            <p>Mulai percakapan dengan membuat sesi baru atau bergabung dengan sesi yang sudah ada</p>
+            
+            <div class="form-group">
+                <label for="username">Nama Pengguna</label>
+                <input type="text" id="username" class="form-control" placeholder="Masukkan nama Anda" value="Pengguna">
+            </div>
+            
+            <div class="form-group">
+                <label for="sessionAction">Pilih Aksi</label>
+                <select id="sessionAction" class="form-control">
+                    <option value="create">Buat Sesi Baru</option>
+                    <option value="join">Gabung Sesi yang Ada</option>
+                </select>
+            </div>
+            
+            <div class="form-group" id="sessionIdGroup">
+                <label for="sessionId">ID Sesi</label>
+                <input type="text" id="sessionId" class="form-control" placeholder="Masukkan ID sesi (contoh: ABC123)">
+                <p style="font-size: 12px; color: var(--text-light); margin-top: 5px;">ID sesi akan dibuat otomatis jika memilih "Buat Sesi Baru"</p>
+            </div>
+            
+            <div class="session-actions">
+                <button class="btn-primary" id="startSessionBtn">
+                    <i class="fas fa-play-circle"></i> <span>Mulai Chat</span>
+                </button>
+                <button class="btn-secondary" id="randomSessionBtn">
+                    <i class="fas fa-random"></i> <span>Sesi Acak</span>
+                </button>
+            </div>
+            
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+                <h3 style="font-size: 16px; margin-bottom: 10px; color: var(--text-dark);">Cara Menggunakan:</h3>
+                <ol style="font-size: 14px; color: var(--text-light); padding-left: 20px;">
+                    <li>Masukkan nama Anda</li>
+                    <li>Pilih "Buat Sesi Baru" untuk membuat ruang chat baru</li>
+                    <li>Bagikan ID sesi ke teman Anda</li>
+                    <li>Teman Anda memilih "Gabung Sesi yang Ada" dan memasukkan ID sesi yang sama</li>
+                </ol>
+            </div>
         </div>
     </div>
-
-    <!-- Chat Container (Hidden until login) -->
-    <div class="container" id="chatContainer">
-        <!-- Sidebar with Chat List -->
-        <div class="sidebar">
-            <div class="header">
-                <div class="user-profile">
-                    <div class="profile-avatar" id="userAvatarBtn">
-                        <div class="avatar-placeholder" id="userAvatarPlaceholder">U</div>
-                        <div class="edit-overlay">Edit</div>
-                    </div>
-                    <div class="user-info">
-                        <h4 id="userNameDisplay">User</h4>
+    
+    <!-- Chat Container -->
+    <div class="app-container" id="chatContainer" style="display: none;">
+        <header class="app-header">
+            <button class="mobile-menu-button" id="mobileMenuButton">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <div class="logo-container">
+                <i class="fas fa-comments logo-icon"></i>
+                <span class="logo-text">Chat Session</span>
+            </div>
+            
+            <div class="connection-status">
+                <div class="status-indicator" id="statusIndicator"></div>
+                <span id="statusText">Menyambungkan...</span>
+            </div>
+        </header>
+        
+        <div class="session-info-bar">
+            <div class="session-id-container">
+                <span class="session-id-label">ID Sesi:</span>
+                <div class="session-id" id="sessionIdDisplay">ABC123</div>
+                <div class="session-action-buttons">
+                    <button class="icon-button" id="copySessionIdBtn" title="Salin ID Sesi">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                    <button class="text-button" id="leaveSessionBtn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Keluar</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="user-count-badge">
+                <i class="fas fa-users"></i>
+                <span id="userCount">1</span> pengguna
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="sidebar" id="sidebar">
+                <div class="sidebar-toggle" id="toggleSidebar">
+                    <i class="fas fa-chevron-left"></i>
+                </div>
+                
+                <div class="user-profile-card">
+                    <div class="user-avatar" id="userAvatar">U</div>
+                    <div class="user-details">
+                        <h3 id="usernameDisplay">Pengguna</h3>
                         <p id="userStatus">Online</p>
                     </div>
                 </div>
-                <div class="header-actions">
-                    <button class="header-btn" id="menuBtn" title="Menu">
-                        <i class="fas fa-ellipsis-v"></i>
-                    </button>
+                
+                <div class="active-users-section">
+                    <h3 class="section-title">Pengguna Online</h3>
+                    <ul class="user-list" id="userList">
+                        <li><span class="status-dot"></span> Anda</li>
+                    </ul>
                 </div>
             </div>
             
-            <!-- Quick Start Chat Form -->
-            <div class="quick-start-chat">
-                <h4>Cari atau Mulai Chat:</h4>
-                <div class="quick-chat-form">
-                    <input type="text" id="quickSearchUser" placeholder="Cari username (contoh: user1)" autocomplete="off">
-                    <button id="quickStartChatBtn">Mulai Chat</button>
-                </div>
-            </div>
-            
-            <div class="search-bar">
-                <div class="search-container">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="searchChats" placeholder="Cari chat...">
-                </div>
-            </div>
-            
-            <div class="chat-list" id="chatList">
-                <!-- Chat items will be dynamically added here -->
-            </div>
-        </div>
-
-        <!-- Main Chat Area -->
-        <div class="main-chat" id="mainChat">
-            <div class="chat-header">
-                <button class="back-to-chats" id="backToChatsBtn">
-                    <i class="fas fa-arrow-left"></i>
-                </button>
-                <div class="chat-contact-info">
-                    <div class="chat-contact-avatar">
-                        <div class="avatar-placeholder" id="activeChatAvatarPlaceholder">G</div>
-                    </div>
-                    <div class="chat-contact-details">
-                        <h3 id="activeChatName">Pilih chat</h3>
-                        <p id="activeChatStatus">Cari username untuk memulai chat</p>
-                    </div>
-                </div>
-                <div class="header-actions">
-                    <button class="header-btn" id="chatInfoBtn" title="Info Chat">
-                        <i class="fas fa-info-circle"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <div class="messages-container" id="messagesContainer">
-                <!-- Welcome screen when no chat is selected -->
-                <div class="welcome-screen" id="welcomeScreen">
-                    <i class="fab fa-whatsapp"></i>
-                    <h2>Selamat datang di ChatApp</h2>
-                    <p>Cari username di kolom pencarian untuk mulai mengobrol!</p>
-                </div>
-                <!-- Messages will be dynamically added here -->
-            </div>
-            
-            <div class="input-container" id="inputContainer" style="display: none;">
-                <button class="emoji-btn" id="emojiBtn">
-                    <i class="far fa-smile"></i>
-                </button>
-                <button class="attach-btn" id="attachBtn">
-                    <i class="fas fa-paperclip"></i>
-                </button>
-                <textarea class="message-input" id="messageInput" placeholder="Ketik pesan..." rows="1"></textarea>
-                <button class="send-btn" id="sendBtn">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
-            </div>
-        </div>
-
-        <!-- Admin Dashboard -->
-        <div class="admin-dashboard" id="adminDashboard">
-            <div class="dashboard-header">
-                <div>
-                    <h3><i class="fas fa-cog"></i> Admin Dashboard</h3>
-                    <p>Kelola pengguna dan pantau aktivitas</p>
-                </div>
-                <button class="back-to-chat-btn" id="backToChatFromAdmin">
-                    <i class="fas fa-arrow-left"></i> Kembali ke Chat
-                </button>
-            </div>
-            
-            <div class="dashboard-content">
-                <!-- Tabs untuk Admin Panel -->
-                <div class="admin-tabs">
-                    <button class="admin-tab active" data-tab="dashboard">Dashboard</button>
-                    <button class="admin-tab" data-tab="users">Kelola Pengguna</button>
-                    <button class="admin-tab" data-tab="add-user">Tambah Pengguna</button>
-                    <button class="admin-tab" data-tab="settings">Pengaturan</button>
+            <div class="chat-area">
+                <div class="chat-header">
+                    <h2 id="chatTitle">Sesi Chat</h2>
+                    <p id="chatDescription">Mulai percakapan dengan pengguna lain dalam sesi ini</p>
                 </div>
                 
-                <!-- Dashboard Tab -->
-                <div class="tab-content active" id="dashboardTab">
-                    <div class="stats-cards">
-                        <div class="stat-card">
-                            <div class="stat-icon stat-online">
-                                <i class="fas fa-user-check"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3>Online Users</h3>
-                                <div class="stat-number" id="onlineUsersCount">0</div>
-                            </div>
-                        </div>
-                        
-                        <div class="stat-card">
-                            <div class="stat-icon stat-offline">
-                                <i class="fas fa-user-times"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3>Offline Users</h3>
-                                <div class="stat-number" id="offlineUsersCount">0</div>
-                            </div>
-                        </div>
-                        
-                        <div class="stat-card">
-                            <div class="stat-icon stat-total">
-                                <i class="fas fa-users"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3>Total Users</h3>
-                                <div class="stat-number" id="totalUsersCount">0</div>
-                            </div>
-                        </div>
-                        
-                        <div class="stat-card">
-                            <div class="stat-icon stat-suspended">
-                                <i class="fas fa-user-slash"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3>Suspended Users</h3>
-                                <div class="stat-number" id="suspendedUsersCount">0</div>
-                            </div>
-                        </div>
+                <div class="messages-container" id="messagesContainer">
+                    <!-- Pesan akan dimuat di sini dari Firebase -->
+                    <div class="empty-state" id="emptyState">
+                        <i class="fas fa-comment-slash"></i>
+                        <h3>Belum ada pesan</h3>
+                        <p>Kirim pesan pertama untuk memulai percakapan</p>
                     </div>
                     
-                    <div class="admin-section">
-                        <h3><i class="fas fa-chart-line"></i> Aktivitas Terkini</h3>
-                        <div id="recentActivity">
-                            <p>Memuat aktivitas...</p>
+                    <div class="typing-indicator" id="typingIndicator" style="display: none;">
+                        <span id="typingUser">Alex</span> sedang mengetik
+                        <div class="dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Users Management Tab -->
-                <div class="tab-content" id="usersTab">
-                    <div class="admin-section">
-                        <h3><i class="fas fa-users-cog"></i> User Management</h3>
-                        <div class="table-responsive">
-                            <table class="user-management-table">
-                                <thead>
-                                    <tr>
-                                        <th>Username</th>
-                                        <th>Display Name</th>
-                                        <th>Status</th>
-                                        <th>Role</th>
-                                        <th>Last Active</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="adminUserTable">
-                                    <!-- Users will be dynamically added here -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Add User Tab -->
-                <div class="tab-content" id="addUserTab">
-                    <div class="admin-section">
-                        <h3><i class="fas fa-user-plus"></i> Tambah Pengguna Baru</h3>
-                        <div class="form-group">
-                            <label for="newUsername">Username*</label>
-                            <input type="text" id="newUsername" class="form-control" placeholder="Masukkan username (unik)" required>
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="newDisplayName">Nama Tampilan*</label>
-                                <input type="text" id="newDisplayName" class="form-control" placeholder="Masukkan nama tampilan" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="newUserPin">PIN (4 digit)*</label>
-                                <input type="password" id="newUserPin" class="form-control" placeholder="Masukkan PIN" maxlength="4" required>
-                            </div>
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="newUserStatus">Status Awal</label>
-                                <select id="newUserStatus" class="form-control">
-                                    <option value="Online">Online</option>
-                                    <option value="Offline">Offline</option>
-                                    <option value="Busy">Sibuk</option>
-                                    <option value="Away">Tidak Tersedia</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="newUserRole">Role</label>
-                                <select id="newUserRole" class="form-control">
-                                    <option value="user">User Biasa</option>
-                                    <option value="admin">Admin</option>
-                                    <option value="moderator">Moderator</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <button class="btn btn-primary" id="addNewUserBtn">
-                                <i class="fas fa-user-plus"></i> Tambah Pengguna
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Settings Tab -->
-                <div class="tab-content" id="settingsTab">
-                    <div class="admin-section">
-                        <h3><i class="fas fa-cogs"></i> Pengaturan Sistem</h3>
-                        <div class="form-group">
-                            <label for="systemName">Nama Sistem</label>
-                            <input type="text" id="systemName" class="form-control" value="ChatApp" placeholder="Masukkan nama sistem">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="defaultUserRole">Role Default User Baru</label>
-                            <select id="defaultUserRole" class="form-control">
-                                <option value="user">User</option>
-                                <option value="moderator">Moderator</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="autoSuspendInactive">Auto Suspend User Tidak Aktif (hari)</label>
-                            <input type="number" id="autoSuspendInactive" class="form-control" value="30" min="1" max="365">
-                        </div>
-                        
-                        <div class="form-group">
-                            <button class="btn btn-primary" id="saveSystemSettings">
-                                <i class="fas fa-save"></i> Simpan Pengaturan
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="admin-section">
-                        <h3><i class="fas fa-tools"></i> Tools Administrasi</h3>
-                        <div class="action-buttons">
-                            <button class="btn btn-warning" id="backupDataBtn">
-                                <i class="fas fa-download"></i> Backup Data
-                            </button>
-                            <button class="btn btn-danger" id="clearAllChatsBtn">
-                                <i class="fas fa-trash"></i> Hapus Semua Chat
-                            </button>
-                            <button class="btn btn-secondary" id="exportUsersBtn">
-                                <i class="fas fa-file-export"></i> Export Users
-                            </button>
-                        </div>
-                    </div>
+                <div class="input-container">
+                    <input type="text" class="message-input" id="messageInput" placeholder="Ketik pesan Anda di sini..." autocomplete="off">
+                    <button class="send-button" id="sendButton">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Modals -->
     
-    <!-- Profile Modal -->
-    <div class="modal" id="profileModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Edit Profil</h3>
-                <button class="close-modal" id="closeProfileModal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="profile-preview">
-                    <div class="profile-image-container" id="profileImageContainer">
-                        <div class="avatar-placeholder" id="profileAvatarPlaceholder">U</div>
-                        <div class="edit-icon">
-                            <i class="fas fa-camera"></i>
-                        </div>
-                    </div>
-                    <h3 id="profileNameDisplay">User</h3>
-                </div>
-                
-                <div class="form-group">
-                    <label for="profileName">Nama Tampilan</label>
-                    <input type="text" id="profileName" class="form-control" placeholder="Masukkan nama Anda">
-                </div>
-                
-                <div class="form-group">
-                    <label for="profileStatus">Status</label>
-                    <input type="text" id="profileStatus" class="form-control" placeholder="Masukkan status Anda">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" id="cancelProfileBtn">Batal</button>
-                <button class="btn btn-primary" id="saveProfileBtn">Simpan Perubahan</button>
-            </div>
-        </div>
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle"></i>
+        <span id="notificationText">Pesan terkirim!</span>
     </div>
 
-    <!-- Reset Password Modal -->
-    <div class="modal" id="resetPasswordModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Reset Password User</h3>
-                <button class="close-modal" id="closeResetPasswordModal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="resetUserInfo">User</label>
-                    <input type="text" id="resetUserInfo" class="form-control" readonly>
-                </div>
-                
-                <div class="form-group">
-                    <label for="newPassword">PIN Baru (4 digit)</label>
-                    <input type="password" id="newPassword" class="form-control" placeholder="Masukkan PIN baru" maxlength="4">
-                </div>
-                
-                <div class="form-group">
-                    <label for="confirmNewPassword">Konfirmasi PIN Baru</label>
-                    <input type="password" id="confirmNewPassword" class="form-control" placeholder="Konfirmasi PIN baru" maxlength="4">
-                </div>
-                
-                <input type="hidden" id="resetUserId">
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" id="cancelResetPasswordBtn">Batal</button>
-                <button class="btn btn-primary" id="saveResetPasswordBtn">Reset Password</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Edit User Modal -->
-    <div class="modal" id="editUserModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Edit User</h3>
-                <button class="close-modal" id="closeEditUserModal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="editUsername">Username</label>
-                    <input type="text" id="editUsername" class="form-control" readonly>
-                </div>
-                
-                <div class="form-group">
-                    <label for="editDisplayName">Display Name</label>
-                    <input type="text" id="editDisplayName" class="form-control">
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="editUserStatus">Status</label>
-                        <select id="editUserStatus" class="form-control">
-                            <option value="Online">Online</option>
-                            <option value="Offline">Offline</option>
-                            <option value="Busy">Sibuk</option>
-                            <option value="Away">Tidak Tersedia</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="editUserRole">Role</label>
-                            <select id="editUserRole" class="form-control">
-                            <option value="user">User</option>
-                            <option value="admin">Admin</option>
-                            <option value="moderator">Moderator</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="editUserIsSuspended">Status Akun</label>
-                    <select id="editUserIsSuspended" class="form-control">
-                        <option value="false">Aktif</option>
-                        <option value="true">Suspended</option>
-                    </select>
-                </div>
-                
-                <input type="hidden" id="editUserId">
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" id="cancelEditUserBtn">Batal</button>
-                <button class="btn btn-primary" id="saveEditUserBtn">Simpan Perubahan</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Menu Modal -->
-    <div class="modal" id="menuModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Menu</h3>
-                <button class="close-modal" id="closeMenuModal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div style="display: flex; flex-direction: column; gap: 10px;">
-                    <button class="btn btn-secondary" id="viewProfileBtn" style="text-align: left;">
-                        <i class="fas fa-user"></i> Lihat Profil
-                    </button>
-                    <button class="btn btn-secondary" id="adminDashboardBtn" style="text-align: left;">
-                        <i class="fas fa-cog"></i> Admin Dashboard
-                    </button>
-                    <button class="btn btn-secondary" id="logoutBtn" style="text-align: left;">
-                        <i class="fas fa-sign-out-alt"></i> Keluar
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Loading Overlay -->
-    <div class="loading" id="globalLoading">
-        <div class="spinner"></div>
-    </div>
-
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
     <script>
         // ============== FIREBASE CONFIGURATION ==============
         const firebaseConfig = {
@@ -1635,1812 +1208,602 @@
             appId: "1:805016544678:web:aaeb2bef3d6db7786f1b67"
         };
         
-        // Initialize Firebase
-        let database;
-        let firebaseInitialized = false;
-        
-        // Coba inisialisasi Firebase
-        try {
-            firebase.initializeApp(firebaseConfig);
-            database = firebase.database();
-            firebaseInitialized = true;
-            console.log("Firebase initialized successfully");
-            
-            // Update status di login screen
-            document.getElementById('firebaseStatus').textContent = "✅ Database terhubung";
-            document.getElementById('firebaseStatus').style.color = "green";
-            
-        } catch (error) {
-            console.error("Firebase initialization error:", error);
-            document.getElementById('firebaseStatus').textContent = "❌ Error: " + error.message;
-            document.getElementById('firebaseStatus').style.color = "red";
-            alert("Error: Firebase initialization failed. Please check console.");
-        }
-
-        // ============== STATE MANAGEMENT ==============
-        let currentUser = null;
-        let currentChat = null;
-        let chats = [];
-        let users = [];
-        let messages = {};
-        let isAdmin = false;
-        let onlineUsers = {};
-        let systemSettings = {
-            systemName: "ChatApp",
-            defaultUserRole: "user",
-            autoSuspendInactive: 30
-        };
-
-        // ============== SIMPLE USER STORAGE FALLBACK ==============
-        // Jika Firebase tidak berfungsi, kita gunakan localStorage sebagai fallback
-        const LOCAL_STORAGE_USERS_KEY = 'chatapp_users';
-        const LOCAL_STORAGE_CHATS_KEY = 'chatapp_chats';
-        const LOCAL_STORAGE_MESSAGES_KEY = 'chatapp_messages';
-        
-        // Fungsi untuk mendapatkan/menyimpan data di localStorage jika Firebase gagal
-        function getLocalStorageUsers() {
-            const usersJSON = localStorage.getItem(LOCAL_STORAGE_USERS_KEY);
-            return usersJSON ? JSON.parse(usersJSON) : {};
-        }
-        
-        function saveLocalStorageUsers(users) {
-            localStorage.setItem(LOCAL_STORAGE_USERS_KEY, JSON.stringify(users));
-        }
-        
-        function getLocalStorageChats() {
-            const chatsJSON = localStorage.getItem(LOCAL_STORAGE_CHATS_KEY);
-            return chatsJSON ? JSON.parse(chatsJSON) : {};
-        }
-        
-        function saveLocalStorageChats(chats) {
-            localStorage.setItem(LOCAL_STORAGE_CHATS_KEY, JSON.stringify(chats));
-        }
-        
-        function getLocalStorageMessages() {
-            const messagesJSON = localStorage.getItem(LOCAL_STORAGE_MESSAGES_KEY);
-            return messagesJSON ? JSON.parse(messagesJSON) : {};
-        }
-        
-        function saveLocalStorageMessages(messages) {
-            localStorage.setItem(LOCAL_STORAGE_MESSAGES_KEY, JSON.stringify(messages));
-        }
-
-        // ============== DOM ELEMENTS ==============
-        // Login elements
-        const loginScreen = document.getElementById('loginScreen');
-        const chatContainer = document.getElementById('chatContainer');
-        const loginUsername = document.getElementById('loginUsername');
-        const loginPin = document.getElementById('loginPin');
-        const loginBtn = document.getElementById('loginBtn');
-        const loginMessage = document.getElementById('loginMessage');
-        
-        // Sidebar elements
-        const userAvatarBtn = document.getElementById('userAvatarBtn');
-        const userNameDisplay = document.getElementById('userNameDisplay');
-        const userStatus = document.getElementById('userStatus');
-        const menuBtn = document.getElementById('menuBtn');
-        const quickSearchUser = document.getElementById('quickSearchUser');
-        const quickStartChatBtn = document.getElementById('quickStartChatBtn');
-        const searchChats = document.getElementById('searchChats');
-        const chatList = document.getElementById('chatList');
-        
-        // Main chat elements
-        const mainChat = document.getElementById('mainChat');
-        const backToChatsBtn = document.getElementById('backToChatsBtn');
-        const activeChatName = document.getElementById('activeChatName');
-        const activeChatStatus = document.getElementById('activeChatStatus');
-        const messagesContainer = document.getElementById('messagesContainer');
-        const welcomeScreen = document.getElementById('welcomeScreen');
-        const inputContainer = document.getElementById('inputContainer');
-        const messageInput = document.getElementById('messageInput');
-        const sendBtn = document.getElementById('sendBtn');
-        
-        // Admin dashboard elements
-        const adminDashboard = document.getElementById('adminDashboard');
-        const backToChatFromAdmin = document.getElementById('backToChatFromAdmin');
-        const onlineUsersCount = document.getElementById('onlineUsersCount');
-        const offlineUsersCount = document.getElementById('offlineUsersCount');
-        const totalUsersCount = document.getElementById('totalUsersCount');
-        const suspendedUsersCount = document.getElementById('suspendedUsersCount');
-        const adminUserTable = document.getElementById('adminUserTable');
-        const adminDashboardBtn = document.getElementById('adminDashboardBtn');
-        
-        // Admin tabs
-        const adminTabs = document.querySelectorAll('.admin-tab');
-        const tabContents = {
-            dashboard: document.getElementById('dashboardTab'),
-            users: document.getElementById('usersTab'),
-            addUser: document.getElementById('addUserTab'),
-            settings: document.getElementById('settingsTab')
-        };
-        
-        // Add user form
-        const newUsername = document.getElementById('newUsername');
-        const newDisplayName = document.getElementById('newDisplayName');
-        const newUserPin = document.getElementById('newUserPin');
-        const newUserStatus = document.getElementById('newUserStatus');
-        const newUserRole = document.getElementById('newUserRole');
-        const addNewUserBtn = document.getElementById('addNewUserBtn');
-        
-        // System settings
-        const systemName = document.getElementById('systemName');
-        const defaultUserRole = document.getElementById('defaultUserRole');
-        const autoSuspendInactive = document.getElementById('autoSuspendInactive');
-        const saveSystemSettings = document.getElementById('saveSystemSettings');
-        
-        // Admin tools
-        const backupDataBtn = document.getElementById('backupDataBtn');
-        const clearAllChatsBtn = document.getElementById('clearAllChatsBtn');
-        const exportUsersBtn = document.getElementById('exportUsersBtn');
-        
-        // Modals
-        const profileModal = document.getElementById('profileModal');
-        const resetPasswordModal = document.getElementById('resetPasswordModal');
-        const editUserModal = document.getElementById('editUserModal');
-        const menuModal = document.getElementById('menuModal');
-        
-        // Reset password modal elements
-        const resetUserInfo = document.getElementById('resetUserInfo');
-        const newPassword = document.getElementById('newPassword');
-        const confirmNewPassword = document.getElementById('confirmNewPassword');
-        const resetUserId = document.getElementById('resetUserId');
-        const closeResetPasswordModal = document.getElementById('closeResetPasswordModal');
-        const cancelResetPasswordBtn = document.getElementById('cancelResetPasswordBtn');
-        const saveResetPasswordBtn = document.getElementById('saveResetPasswordBtn');
-        
-        // Edit user modal elements
-        const editUsername = document.getElementById('editUsername');
-        const editDisplayName = document.getElementById('editDisplayName');
-        const editUserStatus = document.getElementById('editUserStatus');
-        const editUserRole = document.getElementById('editUserRole');
-        const editUserIsSuspended = document.getElementById('editUserIsSuspended');
-        const editUserId = document.getElementById('editUserId');
-        const closeEditUserModal = document.getElementById('closeEditUserModal');
-        const cancelEditUserBtn = document.getElementById('cancelEditUserBtn');
-        const saveEditUserBtn = document.getElementById('saveEditUserBtn');
-        
-        // Profile modal elements
-        const logoutBtn = document.getElementById('logoutBtn');
-        const viewProfileBtn = document.getElementById('viewProfileBtn');
-        
-        const globalLoading = document.getElementById('globalLoading');
-
-        // ============== INITIALIZE APP ==============
-        function initApp() {
-            console.log("Initializing app...");
-            
-            // Check if already logged in
-            const savedUser = localStorage.getItem('currentUser');
-            if (savedUser) {
-                try {
-                    currentUser = JSON.parse(savedUser);
-                    console.log("Found saved user:", currentUser.username);
-                    showChatInterface();
-                } catch (e) {
-                    console.error("Error parsing saved user:", e);
-                    localStorage.removeItem('currentUser');
-                    showLoginInterface();
-                }
-            } else {
-                console.log("No saved user found");
-                showLoginInterface();
-            }
-            
-            setupEventListeners();
-            createDefaultUsers();
-        }
-
-        function showLoginInterface() {
-            console.log("Showing login interface");
-            if (loginScreen) loginScreen.style.display = 'block';
-            if (chatContainer) chatContainer.style.display = 'none';
-            
-            // Pre-fill demo credentials untuk testing
-            if (loginUsername) loginUsername.value = 'admin';
-            if (loginPin) loginPin.value = '8896';
-        }
-
-        function showChatInterface() {
-            console.log("Showing chat interface for user:", currentUser?.username);
-            if (loginScreen) loginScreen.style.display = 'none';
-            if (chatContainer) chatContainer.style.display = 'flex';
-            
-            updateUserDisplay();
-            loadUsers();
-            loadChats();
-            updateOnlineStatus(true);
-            
-            // Check if user is admin
-            isAdmin = currentUser && currentUser.role === 'admin';
-            console.log("User is admin:", isAdmin);
-        }
-
-        // ============== USER MANAGEMENT ==============
-        function createDefaultUsers() {
-            console.log("Creating default users...");
-            
-            // Buat user default di localStorage terlebih dahulu
-            const localUsers = getLocalStorageUsers();
-            let needToSave = false;
-            
-            // Cek apakah admin sudah ada
-            let adminExists = false;
-            for (const userId in localUsers) {
-                if (localUsers[userId].username === 'admin') {
-                    adminExists = true;
-                    break;
-                }
-            }
-            
-            if (!adminExists) {
-                const adminUser = {
-                    id: 'admin_' + Date.now(),
-                    username: 'admin',
-                    pin: '8896',
-                    name: 'Administrator',
-                    status: 'Online',
-                    role: 'admin',
-                    isSuspended: false,
-                    lastActive: Date.now(),
-                    isOnline: false,
-                    createdAt: Date.now()
-                };
-                
-                localUsers[adminUser.id] = adminUser;
-                needToSave = true;
-                console.log("Created admin user in localStorage");
-            }
-            
-            // Cek apakah user1 sudah ada
-            let user1Exists = false;
-            for (const userId in localUsers) {
-                if (localUsers[userId].username === 'user1') {
-                    user1Exists = true;
-                    break;
-                }
-            }
-            
-            if (!user1Exists) {
-                const demoUser = {
-                    id: 'user_' + Date.now(),
-                    username: 'user1',
-                    pin: '1234',
-                    name: 'User Demo',
-                    status: 'Online',
-                    role: 'user',
-                    isSuspended: false,
-                    lastActive: Date.now(),
-                    isOnline: false,
-                    createdAt: Date.now()
-                };
-                
-                localUsers[demoUser.id] = demoUser;
-                needToSave = true;
-                console.log("Created demo user in localStorage");
-            }
-            
-            if (needToSave) {
-                saveLocalStorageUsers(localUsers);
-            }
-            
-            // Jika Firebase terhubung, sync dengan Firebase
-            if (firebaseInitialized && database) {
-                console.log("Syncing default users to Firebase...");
-                
-                // Sync admin user
-                database.ref('users').orderByChild('username').equalTo('admin').once('value').then(snapshot => {
-                    if (!snapshot.exists()) {
-                        const adminUser = {
-                            id: 'admin_' + Date.now(),
-                            username: 'admin',
-                            pin: '8896',
-                            name: 'Administrator',
-                            status: 'Online',
-                            role: 'admin',
-                            isSuspended: false,
-                            lastActive: Date.now(),
-                            isOnline: false,
-                            createdAt: Date.now()
-                        };
-                        
-                        database.ref('users/' + adminUser.id).set(adminUser);
-                        console.log("Admin user created in Firebase");
-                    }
-                }).catch(error => {
-                    console.error("Error creating admin in Firebase:", error);
-                });
-
-                // Sync demo user
-                database.ref('users').orderByChild('username').equalTo('user1').once('value').then(snapshot => {
-                    if (!snapshot.exists()) {
-                        const demoUser = {
-                            id: 'user_' + Date.now(),
-                            username: 'user1',
-                            pin: '1234',
-                            name: 'User Demo',
-                            status: 'Online',
-                            role: 'user',
-                            isSuspended: false,
-                            lastActive: Date.now(),
-                            isOnline: false,
-                            createdAt: Date.now()
-                        };
-                        
-                        database.ref('users/' + demoUser.id).set(demoUser);
-                        console.log("Demo user created in Firebase");
-                    }
-                }).catch(error => {
-                    console.error("Error creating demo user in Firebase:", error);
-                });
-            }
-        }
-
-        function loginUser() {
-            const username = loginUsername.value.trim();
-            const pin = loginPin.value.trim();
-            
-            console.log("Login attempt:", username, pin);
-            
-            if (!username || !pin) {
-                showLoginMessage('Silakan isi username dan PIN', 'error');
-                return;
-            }
-            
-            if (pin.length !== 4 || !/^\d+$/.test(pin)) {
-                showLoginMessage('PIN harus 4 digit angka', 'error');
-                return;
-            }
-            
-            showLoading();
-            
-            // Coba login menggunakan Firebase terlebih dahulu
-            if (firebaseInitialized && database) {
-                console.log("Trying Firebase login...");
-                database.ref('users').orderByChild('username').equalTo(username).once('value').then(snapshot => {
-                    hideLoading();
-                    
-                    if (!snapshot.exists()) {
-                        console.log("User not found in Firebase, trying localStorage...");
-                        // Coba cari di localStorage
-                        loginFromLocalStorage(username, pin);
-                        return;
-                    }
-                    
-                    let userFound = null;
-                    snapshot.forEach(childSnapshot => {
-                        const user = childSnapshot.val();
-                        user.id = childSnapshot.key;
-                        
-                        if (user.pin === pin) {
-                            userFound = user;
-                        }
-                    });
-                    
-                    if (userFound) {
-                        handleLoginSuccess(userFound);
-                    } else {
-                        // Coba cari di localStorage
-                        loginFromLocalStorage(username, pin);
-                    }
-                }).catch(error => {
-                    hideLoading();
-                    console.error('Firebase login error:', error);
-                    // Fallback ke localStorage
-                    loginFromLocalStorage(username, pin);
-                });
-            } else {
-                // Gunakan localStorage saja
-                hideLoading();
-                loginFromLocalStorage(username, pin);
-            }
-        }
-
-        function loginFromLocalStorage(username, pin) {
-            console.log("Trying localStorage login...");
-            const localUsers = getLocalStorageUsers();
-            let userFound = null;
-            
-            for (const userId in localUsers) {
-                const user = localUsers[userId];
-                if (user.username === username && user.pin === pin) {
-                    userFound = user;
-                    break;
-                }
-            }
-            
-            if (userFound) {
-                handleLoginSuccess(userFound);
-            } else {
-                showLoginMessage('Username atau PIN salah', 'error');
-            }
-        }
-
-        function handleLoginSuccess(user) {
-            console.log("Login successful:", user.username);
-            
-            // Check if user is suspended
-            if (user.isSuspended) {
-                showLoginMessage('Akun ini telah disuspend. Hubungi administrator.', 'error');
-                return;
-            }
-            
-            currentUser = user;
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
-            showLoginMessage('Login berhasil!', 'success');
-            
-            setTimeout(() => {
-                showChatInterface();
-                clearLoginForm();
-            }, 1000);
-        }
-
-        function showLoginMessage(message, type) {
-            if (!loginMessage) return;
-            
-            loginMessage.textContent = message;
-            loginMessage.className = 'login-message ' + (type === 'success' ? 'login-success' : 'login-error');
-            loginMessage.style.display = 'block';
-            
-            setTimeout(() => {
-                if (loginMessage) loginMessage.style.display = 'none';
-            }, 3000);
-        }
-
-        function clearLoginForm() {
-            if (loginUsername) loginUsername.value = '';
-            if (loginPin) loginPin.value = '';
-            if (loginMessage) loginMessage.style.display = 'none';
-        }
-
-        function logoutUser() {
-            if (confirm('Apakah Anda yakin ingin keluar?')) {
-                updateOnlineStatus(false);
-                localStorage.removeItem('currentUser');
-                currentUser = null;
-                showLoginInterface();
-            }
-        }
-
-        function updateUserDisplay() {
-            if (!currentUser) return;
-            
-            if (userNameDisplay) userNameDisplay.textContent = currentUser.name || currentUser.username;
-            if (userStatus) userStatus.textContent = currentUser.status || 'Online';
-            
-            // Update profile modal
-            if (document.getElementById('profileNameDisplay')) {
-                document.getElementById('profileNameDisplay').textContent = currentUser.name || currentUser.username;
-            }
-            if (document.getElementById('profileName')) {
-                document.getElementById('profileName').value = currentUser.name || currentUser.username;
-            }
-            if (document.getElementById('profileStatus')) {
-                document.getElementById('profileStatus').value = currentUser.status || 'Online';
-            }
-            if (document.getElementById('profileAvatarPlaceholder')) {
-                document.getElementById('profileAvatarPlaceholder').textContent = (currentUser.name || currentUser.username).charAt(0).toUpperCase();
-            }
-            if (document.getElementById('userAvatarPlaceholder')) {
-                document.getElementById('userAvatarPlaceholder').textContent = (currentUser.name || currentUser.username).charAt(0).toUpperCase();
-            }
-        }
-
-        function saveUserProfile() {
-            if (!currentUser) return;
-            
-            const name = document.getElementById('profileName').value.trim();
-            const status = document.getElementById('profileStatus').value.trim();
-            
-            if (!name) {
-                alert('Silakan masukkan nama');
-                return;
-            }
-            
-            currentUser.name = name;
-            currentUser.status = status;
-            
-            // Update Firebase jika tersedia
-            if (firebaseInitialized && database) {
-                database.ref('users/' + currentUser.id).update({
-                    name: name,
-                    status: status
-                });
-            }
-            
-            // Update localStorage
-            const localUsers = getLocalStorageUsers();
-            if (localUsers[currentUser.id]) {
-                localUsers[currentUser.id].name = name;
-                localUsers[currentUser.id].status = status;
-                saveLocalStorageUsers(localUsers);
-            }
-            
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
-            
-            updateUserDisplay();
-            hideModal(profileModal);
-        }
-
-        // ============== ADMIN DASHBOARD FUNCTIONS ==============
-        function showAdminDashboard() {
-            if (!isAdmin) {
-                alert('Hanya admin yang bisa mengakses dashboard admin');
-                return;
-            }
-            
-            mainChat.style.display = 'none';
-            adminDashboard.style.display = 'block';
-            adminDashboard.classList.add('active');
-            loadAdminDashboard();
-            switchAdminTab('dashboard');
-        }
-
-        function hideAdminDashboard() {
-            adminDashboard.style.display = 'none';
-            adminDashboard.classList.remove('active');
-            mainChat.style.display = 'flex';
-        }
-
-        function switchAdminTab(tabName) {
-            // Update active tab
-            adminTabs.forEach(tab => {
-                if (tab.dataset.tab === tabName) {
-                    tab.classList.add('active');
-                } else {
-                    tab.classList.remove('active');
-                }
-            });
-            
-            // Show active content
-            Object.keys(tabContents).forEach(key => {
-                if (key === tabName) {
-                    tabContents[key].classList.add('active');
-                } else {
-                    tabContents[key].classList.remove('active');
-                }
-            });
-            
-            // Load data if needed
-            if (tabName === 'users') {
-                loadAdminUsers();
-            }
-        }
-
-        function loadAdminDashboard() {
-            if (!isAdmin) return;
-            
-            // Load users from appropriate source
-            if (firebaseInitialized && database) {
-                database.ref('users').on('value', (snapshot) => {
-                    const usersData = snapshot.val();
-                    const userList = [];
-                    
-                    if (usersData) {
-                        Object.keys(usersData).forEach(userId => {
-                            const user = usersData[userId];
-                            user.id = userId;
-                            userList.push(user);
-                        });
-                    }
-                    
-                    updateAdminStats(userList);
-                    updateRecentActivity(userList);
-                });
-            } else {
-                // Use localStorage
-                const localUsers = getLocalStorageUsers();
-                const userList = Object.values(localUsers);
-                updateAdminStats(userList);
-                updateRecentActivity(userList);
-            }
-        }
-
-        function loadAdminUsers() {
-            if (!isAdmin) return;
-            
-            let userList = [];
-            
-            if (firebaseInitialized && database) {
-                database.ref('users').once('value').then(snapshot => {
-                    const usersData = snapshot.val();
-                    
-                    if (usersData) {
-                        Object.keys(usersData).forEach(userId => {
-                            const user = usersData[userId];
-                            user.id = userId;
-                            userList.push(user);
-                        });
-                    }
-                    
-                    renderAdminUserTable(userList);
-                });
-            } else {
-                // Use localStorage
-                const localUsers = getLocalStorageUsers();
-                userList = Object.values(localUsers);
-                renderAdminUserTable(userList);
-            }
-        }
-
-        function updateAdminStats(users = []) {
-            if (!onlineUsersCount || !offlineUsersCount || !totalUsersCount || !suspendedUsersCount) return;
-            
-            let onlineCount = 0;
-            let offlineCount = 0;
-            let suspendedCount = 0;
-            let totalCount = users.length;
-            
-            users.forEach(user => {
-                if (user.isSuspended) suspendedCount++;
-                if (user.isOnline) onlineCount++;
-                else offlineCount++;
-            });
-            
-            onlineUsersCount.textContent = onlineCount;
-            offlineUsersCount.textContent = offlineCount;
-            totalUsersCount.textContent = totalCount;
-            suspendedUsersCount.textContent = suspendedCount;
-        }
-
-        function updateRecentActivity(users) {
-            const recentActivity = document.getElementById('recentActivity');
-            if (!recentActivity) return;
-            
-            // Sort users by last active
-            const sortedUsers = [...users].sort((a, b) => (b.lastActive || 0) - (a.lastActive || 0));
-            
-            let html = '<ul style="list-style: none; padding: 0;">';
-            sortedUsers.slice(0, 5).forEach(user => {
-                const timeAgo = getTimeAgo(user.lastActive);
-                html += `
-                    <li style="padding: 8px 0; border-bottom: 1px solid #eee;">
-                        <strong>${user.name || user.username}</strong> 
-                        <span style="color: #666;">${user.isOnline ? 'sedang online' : `terakhir aktif ${timeAgo}`}</span>
-                    </li>
-                `;
-            });
-            html += '</ul>';
-            
-            recentActivity.innerHTML = html;
-        }
-
-        function getTimeAgo(timestamp) {
-            if (!timestamp) return 'tidak pernah';
-            
-            const diff = Date.now() - timestamp;
-            const minutes = Math.floor(diff / 60000);
-            const hours = Math.floor(minutes / 60);
-            const days = Math.floor(hours / 24);
-            
-            if (minutes < 1) return 'baru saja';
-            if (minutes < 60) return `${minutes} menit lalu`;
-            if (hours < 24) return `${hours} jam lalu`;
-            return `${days} hari lalu`;
-        }
-
-        function renderAdminUserTable(users) {
-            if (!adminUserTable) return;
-            
-            adminUserTable.innerHTML = '';
-            
-            users.forEach(user => {
-                const row = document.createElement('tr');
-                
-                // Determine status class
-                let statusClass = 'status-offline';
-                let statusText = 'Offline';
-                let onlineIndicator = '<span class="online-indicator offline"></span>';
-                
-                if (user.isSuspended) {
-                    statusClass = 'status-suspended';
-                    statusText = 'Suspended';
-                } else if (user.isOnline) {
-                    statusClass = 'status-online';
-                    statusText = 'Online';
-                    onlineIndicator = '<span class="online-indicator online"></span>';
-                }
-                
-                // Determine role class
-                let roleClass = user.role === 'admin' ? 'status-admin' : 
-                              user.role === 'moderator' ? 'status-user' : 'status-user';
-                let roleText = user.role === 'admin' ? 'Admin' : 
-                             user.role === 'moderator' ? 'Moderator' : 'User';
-                
-                // Format last active time
-                const timeAgo = getTimeAgo(user.lastActive);
-                
-                row.innerHTML = `
-                    <td>${user.username || ''}</td>
-                    <td>${user.name || user.username || ''}</td>
-                    <td><span class="user-status ${statusClass}">${onlineIndicator}${statusText}</span></td>
-                    <td><span class="user-status ${roleClass}">${roleText}</span></td>
-                    <td>
-                        <div>${timeAgo}</div>
-                        <div class="last-seen">${user.isOnline ? 'Aktif sekarang' : ''}</div>
-                    </td>
-                    <td>
-                        <div class="action-buttons">
-                            ${user.id !== currentUser?.id ? `
-                                ${user.isSuspended ? 
-                                    `<button class="btn btn-unsuspend btn-xs unsuspend-btn" data-user-id="${user.id}">
-                                        <i class="fas fa-user-check"></i> Unsuspend
-                                    </button>` : 
-                                    `<button class="btn btn-suspend btn-xs suspend-btn" data-user-id="${user.id}">
-                                        <i class="fas fa-user-slash"></i> Suspend
-                                    </button>`
-                                }
-                                <button class="btn btn-kick btn-xs kick-btn" data-user-id="${user.id}">
-                                    <i class="fas fa-sign-out-alt"></i> Kick
-                                </button>
-                                <button class="btn btn-reset btn-xs reset-btn" data-user-id="${user.id}" data-username="${user.username}" data-name="${user.name}">
-                                    <i class="fas fa-key"></i> Reset PIN
-                                </button>
-                                <button class="btn btn-edit btn-xs edit-btn" data-user-id="${user.id}" data-username="${user.username}" data-name="${user.name}" data-status="${user.status || 'Online'}" data-role="${user.role || 'user'}" data-suspended="${user.isSuspended || false}">
-                                    <i class="fas fa-edit"></i> Edit
-                                </button>
-                                <button class="btn btn-delete btn-xs delete-btn" data-user-id="${user.id}" data-username="${user.username}">
-                                    <i class="fas fa-trash"></i> Delete
-                                </button>
-                            ` : '<em>Current User</em>'}
-                        </div>
-                    </td>
-                `;
-                
-                adminUserTable.appendChild(row);
-            });
-            
-            // Add event listeners to buttons
-            setupAdminButtonListeners();
-        }
-
-        function setupAdminButtonListeners() {
-            // Suspend button
-            document.querySelectorAll('.suspend-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const userId = this.getAttribute('data-user-id');
-                    suspendUser(userId);
-                });
-            });
-            
-            // Unsuspend button
-            document.querySelectorAll('.unsuspend-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const userId = this.getAttribute('data-user-id');
-                    unsuspendUser(userId);
-                });
-            });
-            
-            // Kick button
-            document.querySelectorAll('.kick-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const userId = this.getAttribute('data-user-id');
-                    forceLogoutUser(userId);
-                });
-            });
-            
-            // Reset password button
-            document.querySelectorAll('.reset-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const userId = this.getAttribute('data-user-id');
-                    const username = this.getAttribute('data-username');
-                    const name = this.getAttribute('data-name');
-                    showResetPasswordModal(userId, username, name);
-                });
-            });
-            
-            // Edit button
-            document.querySelectorAll('.edit-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const userId = this.getAttribute('data-user-id');
-                    const username = this.getAttribute('data-username');
-                    const name = this.getAttribute('data-name');
-                    const status = this.getAttribute('data-status');
-                    const role = this.getAttribute('data-role');
-                    const suspended = this.getAttribute('data-suspended');
-                    showEditUserModal(userId, username, name, status, role, suspended);
-                });
-            });
-            
-            // Delete button
-            document.querySelectorAll('.delete-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const userId = this.getAttribute('data-user-id');
-                    const username = this.getAttribute('data-username');
-                    deleteUser(userId, username);
-                });
-            });
-        }
-
-        // ============== ADMIN USER ACTIONS ==============
-        function suspendUser(userId) {
-            if (confirm('Apakah Anda yakin ingin mensuspend user ini?')) {
-                // Update Firebase jika tersedia
-                if (firebaseInitialized && database) {
-                    database.ref('users/' + userId).update({
-                        isSuspended: true,
-                        isOnline: false
-                    }).then(() => {
-                        alert('User berhasil disuspend');
-                        loadAdminUsers();
-                    });
-                }
-                
-                // Update localStorage
-                const localUsers = getLocalStorageUsers();
-                if (localUsers[userId]) {
-                    localUsers[userId].isSuspended = true;
-                    localUsers[userId].isOnline = false;
-                    saveLocalStorageUsers(localUsers);
-                    alert('User berhasil disuspend');
-                    loadAdminUsers();
-                }
-            }
-        }
-
-        function unsuspendUser(userId) {
-            if (confirm('Apakah Anda yakin ingin mengaktifkan kembali user ini?')) {
-                // Update Firebase jika tersedia
-                if (firebaseInitialized && database) {
-                    database.ref('users/' + userId).update({
-                        isSuspended: false
-                    }).then(() => {
-                        alert('User berhasil diaktifkan kembali');
-                        loadAdminUsers();
-                    });
-                }
-                
-                // Update localStorage
-                const localUsers = getLocalStorageUsers();
-                if (localUsers[userId]) {
-                    localUsers[userId].isSuspended = false;
-                    saveLocalStorageUsers(localUsers);
-                    alert('User berhasil diaktifkan kembali');
-                    loadAdminUsers();
-                }
-            }
-        }
-
-        function forceLogoutUser(userId) {
-            if (confirm('Apakah Anda yakin ingin memaksa logout user ini?')) {
-                // Update Firebase jika tersedia
-                if (firebaseInitialized && database) {
-                    database.ref('users/' + userId).update({
-                        isOnline: false,
-                        lastActive: Date.now()
-                    }).then(() => {
-                        alert('User berhasil di-logout');
-                        loadAdminUsers();
-                    });
-                }
-                
-                // Update localStorage
-                const localUsers = getLocalStorageUsers();
-                if (localUsers[userId]) {
-                    localUsers[userId].isOnline = false;
-                    localUsers[userId].lastActive = Date.now();
-                    saveLocalStorageUsers(localUsers);
-                    alert('User berhasil di-logout');
-                    loadAdminUsers();
-                }
-            }
-        }
-
-        function deleteUser(userId, username) {
-            if (userId === currentUser?.id) {
-                alert('Tidak bisa menghapus akun sendiri');
-                return;
-            }
-            
-            if (confirm(`Apakah Anda yakin ingin menghapus user "${username}"?`)) {
-                showLoading();
-                
-                // Delete from Firebase jika tersedia
-                if (firebaseInitialized && database) {
-                    database.ref('users/' + userId).remove()
-                        .then(() => {
-                            hideLoading();
-                            alert('User berhasil dihapus');
-                            loadAdminUsers();
-                        });
-                }
-                
-                // Delete from localStorage
-                const localUsers = getLocalStorageUsers();
-                if (localUsers[userId]) {
-                    delete localUsers[userId];
-                    saveLocalStorageUsers(localUsers);
-                    hideLoading();
-                    alert('User berhasil dihapus');
-                    loadAdminUsers();
-                }
-            }
-        }
-
-        // ============== RESET PASSWORD FUNCTIONS ==============
-        function showResetPasswordModal(userId, username, name) {
-            if (!resetPasswordModal) return;
-            
-            resetUserId.value = userId;
-            resetUserInfo.value = `${name} (${username})`;
-            newPassword.value = '';
-            confirmNewPassword.value = '';
-            
-            showModal(resetPasswordModal);
-        }
-
-        function resetUserPassword() {
-            const userId = resetUserId.value;
-            const password = newPassword.value.trim();
-            const confirmPassword = confirmNewPassword.value.trim();
-            
-            if (!userId) {
-                alert('User ID tidak valid');
-                return;
-            }
-            
-            if (password.length !== 4 || !/^\d+$/.test(password)) {
-                alert('PIN harus 4 digit angka');
-                return;
-            }
-            
-            if (password !== confirmPassword) {
-                alert('PIN dan konfirmasi PIN tidak cocok');
-                return;
-            }
-            
-            showLoading();
-            
-            // Update Firebase jika tersedia
-            if (firebaseInitialized && database) {
-                database.ref('users/' + userId).update({
-                    pin: password
-                }).then(() => {
-                    hideLoading();
-                    alert('PIN berhasil direset');
-                    hideModal(resetPasswordModal);
-                });
-            }
-            
-            // Update localStorage
-            const localUsers = getLocalStorageUsers();
-            if (localUsers[userId]) {
-                localUsers[userId].pin = password;
-                saveLocalStorageUsers(localUsers);
-                hideLoading();
-                alert('PIN berhasil direset');
-                hideModal(resetPasswordModal);
-            }
-        }
-
-        // ============== EDIT USER FUNCTIONS ==============
-        function showEditUserModal(userId, username, name, status, role, suspended) {
-            if (!editUserModal) return;
-            
-            editUserId.value = userId;
-            editUsername.value = username;
-            editDisplayName.value = name || username;
-            editUserStatus.value = status || 'Online';
-            editUserRole.value = role || 'user';
-            editUserIsSuspended.value = suspended;
-            
-            showModal(editUserModal);
-        }
-
-        function saveUserEdit() {
-            const userId = editUserId.value;
-            const displayName = editDisplayName.value.trim();
-            const status = editUserStatus.value;
-            const role = editUserRole.value;
-            const isSuspended = editUserIsSuspended.value === 'true';
-            
-            if (!userId) {
-                alert('User ID tidak valid');
-                return;
-            }
-            
-            if (!displayName) {
-                alert('Nama tampilan tidak boleh kosong');
-                return;
-            }
-            
-            showLoading();
-            
-            // Update Firebase jika tersedia
-            if (firebaseInitialized && database) {
-                const updates = {
-                    name: displayName,
-                    status: status,
-                    role: role,
-                    isSuspended: isSuspended
-                };
-                
-                // Jika disuspend, set juga isOnline ke false
-                if (isSuspended) {
-                    updates.isOnline = false;
-                }
-                
-                database.ref('users/' + userId).update(updates)
-                    .then(() => {
-                        hideLoading();
-                        alert('User berhasil diperbarui');
-                        hideModal(editUserModal);
-                        loadAdminUsers();
-                    });
-            }
-            
-            // Update localStorage
-            const localUsers = getLocalStorageUsers();
-            if (localUsers[userId]) {
-                localUsers[userId].name = displayName;
-                localUsers[userId].status = status;
-                localUsers[userId].role = role;
-                localUsers[userId].isSuspended = isSuspended;
-                
-                if (isSuspended) {
-                    localUsers[userId].isOnline = false;
-                }
-                
-                saveLocalStorageUsers(localUsers);
-                hideLoading();
-                alert('User berhasil diperbarui');
-                hideModal(editUserModal);
-                loadAdminUsers();
-            }
-        }
-
-        // ============== ADD USER FUNCTIONS ==============
-        function addNewUser() {
-            const username = newUsername.value.trim();
-            const displayName = newDisplayName.value.trim();
-            const pin = newUserPin.value.trim();
-            const status = newUserStatus.value;
-            const role = newUserRole.value;
-            
-            // Validasi
-            if (!username) {
-                alert('Silakan masukkan username');
-                return;
-            }
-            
-            if (!displayName) {
-                alert('Silakan masukkan nama tampilan');
-                return;
-            }
-            
-            if (!pin || pin.length !== 4 || !/^\d+$/.test(pin)) {
-                alert('PIN harus 4 digit angka');
-                return;
-            }
-            
-            // Check if username already exists di localStorage
-            const localUsers = getLocalStorageUsers();
-            let usernameExists = false;
-            
-            for (const userId in localUsers) {
-                if (localUsers[userId].username === username) {
-                    usernameExists = true;
-                    break;
-                }
-            }
-            
-            if (usernameExists) {
-                alert('Username sudah digunakan. Silakan pilih username lain.');
-                return;
-            }
-            
-            // Jika Firebase tersedia, cek juga di Firebase
-            if (firebaseInitialized && database) {
-                database.ref('users').orderByChild('username').equalTo(username).once('value').then(snapshot => {
-                    if (snapshot.exists()) {
-                        alert('Username sudah digunakan. Silakan pilih username lain.');
-                        return;
-                    }
-                    
-                    // Continue dengan pembuatan user
-                    createNewUser(username, displayName, pin, status, role, true);
-                });
-            } else {
-                // Langsung buat user di localStorage
-                createNewUser(username, displayName, pin, status, role, false);
-            }
-        }
-
-        function createNewUser(username, displayName, pin, status, role, useFirebase) {
-            const userId = 'user_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-            const newUser = {
-                id: userId,
-                username: username,
-                pin: pin,
-                name: displayName,
-                status: status,
-                avatar: '',
-                role: role,
-                isSuspended: false,
-                lastActive: Date.now(),
-                isOnline: false,
-                createdAt: Date.now()
-            };
-            
-            showLoading();
-            
-            // Save to Firebase jika diminta
-            if (useFirebase && firebaseInitialized && database) {
-                database.ref('users/' + userId).set(newUser)
-                    .then(() => {
-                        // Also save to localStorage
-                        const localUsers = getLocalStorageUsers();
-                        localUsers[userId] = newUser;
-                        saveLocalStorageUsers(localUsers);
-                        
-                        hideLoading();
-                        alert('Pengguna berhasil ditambahkan!');
-                        
-                        // Clear form
-                        newUsername.value = '';
-                        newDisplayName.value = '';
-                        newUserPin.value = '';
-                        
-                        // Switch to users tab and reload
-                        switchAdminTab('users');
-                        loadAdminUsers();
-                    });
-            } else {
-                // Save to localStorage only
-                const localUsers = getLocalStorageUsers();
-                localUsers[userId] = newUser;
-                saveLocalStorageUsers(localUsers);
-                
-                hideLoading();
-                alert('Pengguna berhasil ditambahkan!');
-                
-                // Clear form
-                newUsername.value = '';
-                newDisplayName.value = '';
-                newUserPin.value = '';
-                
-                // Switch to users tab and reload
-                switchAdminTab('users');
-                loadAdminUsers();
-            }
-        }
-
-        // ============== PRESENCE SYSTEM ==============
-        function updateOnlineStatus(isOnline) {
-            if (!currentUser) return;
-            
-            currentUser.isOnline = isOnline;
-            currentUser.lastActive = Date.now();
-            
-            // Update Firebase jika tersedia
-            if (firebaseInitialized && database) {
-                database.ref('users/' + currentUser.id).update({
-                    isOnline: isOnline,
-                    lastActive: Date.now()
-                });
-            }
-            
-            // Update localStorage
-            const localUsers = getLocalStorageUsers();
-            if (localUsers[currentUser.id]) {
-                localUsers[currentUser.id].isOnline = isOnline;
-                localUsers[currentUser.id].lastActive = Date.now();
-                saveLocalStorageUsers(localUsers);
-            }
-        }
-
-        // ============== CHAT MANAGEMENT ==============
-        function loadUsers() {
-            if (firebaseInitialized && database) {
-                database.ref('users').once('value').then(snapshot => {
-                    users = [];
-                    const usersData = snapshot.val();
-                    
-                    if (usersData) {
-                        Object.keys(usersData).forEach(userId => {
-                            const user = usersData[userId];
-                            user.id = userId;
-                            
-                            if (userId !== currentUser.id && !user.isSuspended) {
-                                users.push(user);
-                            }
-                        });
-                    }
-                });
-            } else {
-                // Use localStorage
-                const localUsers = getLocalStorageUsers();
-                users = [];
-                
-                for (const userId in localUsers) {
-                    const user = localUsers[userId];
-                    if (userId !== currentUser?.id && !user.isSuspended) {
-                        users.push(user);
-                    }
-                }
-            }
-        }
-
-        function loadChats() {
-            showLoading();
-            
-            if (firebaseInitialized && database) {
-                database.ref('chats').once('value').then(snapshot => {
-                    chats = [];
-                    const chatsData = snapshot.val();
-                    
-                    if (chatsData) {
-                        Object.keys(chatsData).forEach(chatId => {
-                            const chat = chatsData[chatId];
-                            chat.id = chatId;
-                            
-                            if (chat.participants && chat.participants[currentUser.id]) {
-                                chats.push(chat);
-                            }
-                        });
-                    }
-                    
-                    renderChatList();
-                    hideLoading();
-                });
-            } else {
-                // Use localStorage
-                const localChats = getLocalStorageChats();
-                chats = [];
-                
-                for (const chatId in localChats) {
-                    const chat = localChats[chatId];
-                    if (chat.participants && chat.participants[currentUser.id]) {
-                        chats.push(chat);
-                    }
-                }
-                
-                renderChatList();
-                hideLoading();
-            }
-        }
-
-        function renderChatList() {
-            if (!chatList) return;
-            
-            chatList.innerHTML = '';
-            
-            if (chats.length === 0) {
-                chatList.innerHTML = `
-                    <div style="text-align: center; padding: 40px 20px; color: #667781;">
-                        <i class="fas fa-comments" style="font-size: 48px; margin-bottom: 15px; opacity: 0.5;"></i>
-                        <p>Belum ada chat. Cari username untuk mulai chat!</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            chats.sort((a, b) => (b.lastMessageTime || 0) - (a.lastMessageTime || 0));
-            
-            chats.forEach(chat => {
-                const chatItem = document.createElement('div');
-                chatItem.className = 'chat-item';
-                chatItem.dataset.chatId = chat.id;
-                
-                if (currentChat && chat.id === currentChat.id) {
-                    chatItem.classList.add('active');
-                }
-                
-                const lastMessage = chat.lastMessage || 'Belum ada pesan';
-                const lastTime = chat.lastMessageTime ? formatTime(chat.lastMessageTime) : '';
-                const unreadCount = chat.unreadCount && chat.unreadCount[currentUser.id] || 0;
-                
-                let chatDisplayName = chat.name || 'Chat';
-                let avatarText = chatDisplayName.charAt(0).toUpperCase();
-                
-                if (chat.type === 'private' && chat.participants) {
-                    const otherParticipants = Object.keys(chat.participants).filter(id => id !== currentUser.id);
-                    if (otherParticipants.length > 0) {
-                        const otherUserId = otherParticipants[0];
-                        const otherUser = users.find(u => u.id === otherUserId);
-                        if (otherUser) {
-                            chatDisplayName = otherUser.name || otherUser.username;
-                            avatarText = chatDisplayName.charAt(0).toUpperCase();
-                        }
-                    }
-                }
-                
-                chatItem.innerHTML = `
-                    <div class="chat-avatar">
-                        <div class="avatar-placeholder">${avatarText}</div>
-                    </div>
-                    <div class="chat-info">
-                        <h4>
-                            ${chatDisplayName}
-                            <span class="chat-time">${lastTime}</span>
-                        </h4>
-                        <div class="chat-preview">
-                            ${lastMessage}
-                        </div>
-                    </div>
-                    ${unreadCount > 0 ? `<div class="unread-badge">${unreadCount}</div>` : ''}
-                `;
-                
-                chatItem.addEventListener('click', () => selectChat(chat));
-                chatList.appendChild(chatItem);
-            });
-        }
-
-        function quickStartChat() {
-            const searchUsername = quickSearchUser.value.trim().toLowerCase();
-            
-            if (!searchUsername) {
-                alert('Silakan masukkan username');
-                return;
-            }
-            
-            // Find user by username
-            let targetUser = null;
-            
-            if (firebaseInitialized && database) {
-                database.ref('users').orderByChild('username').equalTo(searchUsername).once('value').then(snapshot => {
-                    if (!snapshot.exists()) {
-                        // Coba cari di localStorage
-                        findUserInLocalStorage(searchUsername);
-                        return;
-                    }
-                    
-                    snapshot.forEach(childSnapshot => {
-                        const user = childSnapshot.val();
-                        user.id = childSnapshot.key;
-                        
-                        if (user.isSuspended) {
-                            alert('User tersebut telah disuspend');
-                            return;
-                        }
-                        
-                        targetUser = user;
-                    });
-                    
-                    if (!targetUser) {
-                        findUserInLocalStorage(searchUsername);
-                        return;
-                    }
-                    
-                    startChatWithUser(targetUser);
-                }).catch(() => {
-                    findUserInLocalStorage(searchUsername);
-                });
-            } else {
-                findUserInLocalStorage(searchUsername);
-            }
-        }
-
-        function findUserInLocalStorage(username) {
-            const localUsers = getLocalStorageUsers();
-            let targetUser = null;
-            
-            for (const userId in localUsers) {
-                const user = localUsers[userId];
-                if (user.username.toLowerCase() === username.toLowerCase()) {
-                    if (user.isSuspended) {
-                        alert('User tersebut telah disuspend');
-                        return;
-                    }
-                    
-                    targetUser = user;
-                    break;
-                }
-            }
-            
-            if (!targetUser) {
-                alert('Username tidak ditemukan');
-                return;
-            }
-            
-            startChatWithUser(targetUser);
-        }
-
-        function startChatWithUser(targetUser) {
-            if (targetUser.id === currentUser.id) {
-                alert('Tidak bisa chat dengan diri sendiri');
-                return;
-            }
-            
-            // Check if chat already exists
-            const existingChat = chats.find(chat => 
-                chat.type === 'private' && 
-                chat.participants && 
-                chat.participants[currentUser.id] && 
-                chat.participants[targetUser.id]
-            );
-            
-            if (existingChat) {
-                selectChat(existingChat);
-                quickSearchUser.value = '';
-                return;
-            }
-            
-            // Create new chat
-            const chatId = 'chat_' + Date.now();
-            const newChat = {
-                id: chatId,
-                name: targetUser.name || targetUser.username,
-                type: 'private',
-                participants: {
-                    [currentUser.id]: { joinedAt: Date.now(), role: 'member' },
-                    [targetUser.id]: { joinedAt: Date.now(), role: 'member' }
-                },
-                createdAt: Date.now(),
-                lastMessage: '',
-                lastMessageTime: null,
-                createdBy: currentUser.id
-            };
-            
-            // Save to Firebase jika tersedia
-            if (firebaseInitialized && database) {
-                database.ref('chats/' + chatId).set(newChat);
-            }
-            
-            // Save to localStorage
-            const localChats = getLocalStorageChats();
-            localChats[chatId] = newChat;
-            saveLocalStorageChats(localChats);
-            
-            chats.push(newChat);
-            renderChatList();
-            selectChat(newChat);
-            quickSearchUser.value = '';
-        }
-
-        function selectChat(chat) {
-            currentChat = chat;
-            renderChatList();
-            
-            if (activeChatName) activeChatName.textContent = chat.name || 'Chat';
-            if (activeChatStatus) activeChatStatus.textContent = 'Online';
-            if (activeChatAvatarPlaceholder) {
-                activeChatAvatarPlaceholder.textContent = (chat.name || 'Chat').charAt(0).toUpperCase();
-            }
-            
-            if (mainChat) mainChat.classList.add('active');
-            if (welcomeScreen) welcomeScreen.style.display = 'none';
-            if (messagesContainer) messagesContainer.style.display = 'flex';
-            if (inputContainer) inputContainer.style.display = 'flex';
-            
-            loadMessages(chat.id);
-            if (messageInput) messageInput.focus();
-        }
-
-        // ============== MESSAGE MANAGEMENT ==============
-        function loadMessages(chatId) {
-            if (messages[chatId] && messages[chatId].listener) {
-                messages[chatId].listener();
-            }
-            
-            if (!messagesContainer) return;
-            
-            messagesContainer.innerHTML = '';
-            
-            if (firebaseInitialized && database) {
-                database.ref('messages/' + chatId).once('value').then(snapshot => {
-                    const messagesData = snapshot.val();
-                    messages[chatId] = { data: [] };
-                    
-                    if (messagesData) {
-                        Object.keys(messagesData).forEach(messageId => {
-                            const message = messagesData[messageId];
-                            message.id = messageId;
-                            messages[chatId].data.push(message);
-                        });
-                        
-                        messages[chatId].data.sort((a, b) => a.timestamp - b.timestamp);
-                        
-                        messages[chatId].data.forEach(message => {
-                            renderMessage(message);
-                        });
-                        
-                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                    }
-                });
-                
-                const listener = database.ref('messages/' + chatId).on('child_added', (snapshot) => {
-                    const message = snapshot.val();
-                    message.id = snapshot.key;
-                    
-                    if (!messages[chatId]) messages[chatId] = { data: [] };
-                    if (!messages[chatId].data.find(m => m.id === message.id)) {
-                        messages[chatId].data.push(message);
-                        
-                        if (currentChat && currentChat.id === chatId) {
-                            renderMessage(message);
-                            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                        }
-                        
-                        updateChatLastMessage(chatId, message);
-                    }
-                });
-                
-                messages[chatId].listener = () => {
-                    database.ref('messages/' + chatId).off('child_added', listener);
-                };
-            } else {
-                // Load from localStorage
-                const allMessages = getLocalStorageMessages();
-                const chatMessages = allMessages[chatId] || {};
-                messages[chatId] = { data: [] };
-                
-                Object.keys(chatMessages).forEach(messageId => {
-                    const message = chatMessages[messageId];
-                    messages[chatId].data.push(message);
-                });
-                
-                messages[chatId].data.sort((a, b) => a.timestamp - b.timestamp);
-                
-                messages[chatId].data.forEach(message => {
-                    renderMessage(message);
-                });
-                
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }
-        }
-
-        function renderMessage(message) {
-            if (!messagesContainer) return;
-            
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${message.senderId === currentUser.id ? 'message-sent' : 'message-received'}`;
-            
-            const senderName = message.senderId === currentUser.id ? 'Anda' : message.senderName || 'User';
-            
-            messageDiv.innerHTML = `
-                ${message.senderId !== currentUser.id ? `<div class="message-sender">${senderName}</div>` : ''}
-                <div class="message-content">${message.content}</div>
-                <div class="message-time">${formatTime(message.timestamp)}</div>
-            `;
-            
-            messagesContainer.appendChild(messageDiv);
-        }
-
-        function sendMessage() {
-            const content = messageInput.value.trim();
-            
-            if (!content || !currentChat) return;
-            
-            const message = {
-                senderId: currentUser.id,
-                senderName: currentUser.name || currentUser.username,
-                content: content,
-                type: 'text',
-                timestamp: Date.now()
-            };
-            
-            const messageId = 'msg_' + Date.now();
-            
-            // Save to Firebase jika tersedia
-            if (firebaseInitialized && database) {
-                database.ref('messages/' + currentChat.id + '/' + messageId).set(message)
-                    .catch(error => {
-                        console.error('Error sending message to Firebase:', error);
-                        // Fallback to localStorage
-                        saveMessageToLocalStorage(currentChat.id, messageId, message);
-                    });
-            } else {
-                saveMessageToLocalStorage(currentChat.id, messageId, message);
-            }
-            
-            messageInput.value = '';
-            messageInput.style.height = 'auto';
-            
-            updateChatLastMessage(currentChat.id, message);
-        }
-
-        function saveMessageToLocalStorage(chatId, messageId, message) {
-            const allMessages = getLocalStorageMessages();
-            if (!allMessages[chatId]) {
-                allMessages[chatId] = {};
-            }
-            allMessages[chatId][messageId] = message;
-            saveLocalStorageMessages(allMessages);
-            
-            // Add to current messages
-            if (!messages[chatId]) messages[chatId] = { data: [] };
-            messages[chatId].data.push(message);
-            
-            // Render immediately
-            if (currentChat && currentChat.id === chatId) {
-                renderMessage(message);
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }
-        }
-
-        function updateChatLastMessage(chatId, message) {
-            const lastMessage = message.type === 'text' ? message.content : `Mengirim ${message.type}`;
-            
-            // Update Firebase jika tersedia
-            if (firebaseInitialized && database) {
-                database.ref('chats/' + chatId).update({
-                    lastMessage: lastMessage,
-                    lastMessageTime: message.timestamp
-                });
-            }
-            
-            // Update localStorage
-            const localChats = getLocalStorageChats();
-            if (localChats[chatId]) {
-                localChats[chatId].lastMessage = lastMessage;
-                localChats[chatId].lastMessageTime = message.timestamp;
-                saveLocalStorageChats(localChats);
-                
-                // Update local chats array
-                const chatIndex = chats.findIndex(c => c.id === chatId);
-                if (chatIndex !== -1) {
-                    chats[chatIndex].lastMessage = lastMessage;
-                    chats[chatIndex].lastMessageTime = message.timestamp;
-                    renderChatList();
-                }
-            }
-        }
-
-        // ============== HELPER FUNCTIONS ==============
-        function formatTime(timestamp) {
-            if (!timestamp) return '';
-            
-            const date = new Date(timestamp);
-            const now = new Date();
-            const diff = now - date;
-            
-            if (diff < 24 * 60 * 60 * 1000) {
-                return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-            }
-            
-            if (diff < 7 * 24 * 60 * 60 * 1000) {
-                const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-                return days[date.getDay()];
-            }
-            
-            return date.toLocaleDateString('id-ID', { month: 'short', day: 'numeric' });
-        }
-
-        function showModal(modal) {
-            if (modal) modal.classList.add('active');
-        }
-
-        function hideModal(modal) {
-            if (modal) modal.classList.remove('active');
-        }
-
-        function showLoading() {
-            if (globalLoading) globalLoading.classList.add('active');
-        }
-
-        function hideLoading() {
-            if (globalLoading) globalLoading.classList.remove('active');
-        }
-
-        // ============== EVENT LISTENERS ==============
-        function setupEventListeners() {
-            console.log("Setting up event listeners...");
-            
-            // Login
-            if (loginBtn) {
-                loginBtn.addEventListener('click', loginUser);
-                console.log("Login button listener added");
-            }
-            
-            if (loginUsername) loginUsername.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter' && loginPin) loginPin.focus();
-            });
-            
-            if (loginPin) loginPin.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') loginUser();
-            });
-            
-            // Profile management
-            if (userAvatarBtn) userAvatarBtn.addEventListener('click', () => showModal(profileModal));
-            
-            if (document.getElementById('closeProfileModal')) {
-                document.getElementById('closeProfileModal').addEventListener('click', () => hideModal(profileModal));
-            }
-            
-            if (document.getElementById('cancelProfileBtn')) {
-                document.getElementById('cancelProfileBtn').addEventListener('click', () => hideModal(profileModal));
-            }
-            
-            if (document.getElementById('saveProfileBtn')) {
-                document.getElementById('saveProfileBtn').addEventListener('click', saveUserProfile);
-            }
-            
-            // Quick start chat
-            if (quickStartChatBtn) quickStartChatBtn.addEventListener('click', quickStartChat);
-            
-            if (quickSearchUser) quickSearchUser.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') quickStartChat();
-            });
-            
-            // Message sending
-            if (sendBtn) sendBtn.addEventListener('click', sendMessage);
-            
-            if (messageInput) {
-                messageInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        sendMessage();
-                    }
-                });
-                
-                messageInput.addEventListener('input', function() {
-                    this.style.height = 'auto';
-                    this.style.height = (this.scrollHeight) + 'px';
-                });
-            }
-            
-            // Menu
-            if (menuBtn) menuBtn.addEventListener('click', () => showModal(menuModal));
-            
-            if (document.getElementById('closeMenuModal')) {
-                document.getElementById('closeMenuModal').addEventListener('click', () => hideModal(menuModal));
-            }
-            
-            if (viewProfileBtn) viewProfileBtn.addEventListener('click', () => {
-                hideModal(menuModal);
-                showModal(profileModal);
-            });
-            
-            if (adminDashboardBtn) adminDashboardBtn.addEventListener('click', () => {
-                hideModal(menuModal);
-                showAdminDashboard();
-            });
-            
-            if (logoutBtn) logoutBtn.addEventListener('click', logoutUser);
-            
-            // Admin dashboard navigation
-            if (backToChatFromAdmin) backToChatFromAdmin.addEventListener('click', hideAdminDashboard);
-            
-            // Admin tabs
-            adminTabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    switchAdminTab(tab.dataset.tab);
-                });
-            });
-            
-            // Add user form
-            if (addNewUserBtn) addNewUserBtn.addEventListener('click', addNewUser);
-            
-            // Reset password modal
-            if (closeResetPasswordModal) closeResetPasswordModal.addEventListener('click', () => hideModal(resetPasswordModal));
-            if (cancelResetPasswordBtn) cancelResetPasswordBtn.addEventListener('click', () => hideModal(resetPasswordModal));
-            if (saveResetPasswordBtn) saveResetPasswordBtn.addEventListener('click', resetUserPassword);
-            
-            // Edit user modal
-            if (closeEditUserModal) closeEditUserModal.addEventListener('click', () => hideModal(editUserModal));
-            if (cancelEditUserBtn) cancelEditUserBtn.addEventListener('click', () => hideModal(editUserModal));
-            if (saveEditUserBtn) saveEditUserBtn.addEventListener('click', saveUserEdit);
-            
-            // Back to chats button (mobile)
-            if (backToChatsBtn) backToChatsBtn.addEventListener('click', () => {
-                if (mainChat) mainChat.classList.remove('active');
-            });
-            
-            // Search functionality
-            if (searchChats) searchChats.addEventListener('input', (e) => {
-                const searchTerm = e.target.value.toLowerCase();
-                const chatItems = document.querySelectorAll('.chat-item');
-                
-                chatItems.forEach(item => {
-                    const chatName = item.querySelector('.chat-info h4').textContent.toLowerCase();
-                    item.style.display = chatName.includes(searchTerm) ? 'flex' : 'none';
-                });
-            });
-            
-            // Window close event
-            window.addEventListener('beforeunload', () => {
-                if (currentUser) {
-                    updateOnlineStatus(false);
-                }
-            });
-            
-            console.log("Event listeners setup complete");
-        }
-
-        // ============== INITIALIZE ==============
         document.addEventListener('DOMContentLoaded', function() {
-            console.log("DOM loaded, initializing app...");
-            setTimeout(initApp, 100); // Small delay to ensure everything is ready
+            // Inisialisasi Firebase
+            firebase.initializeApp(firebaseConfig);
+            const database = firebase.database();
+            
+            // Elemen DOM
+            const sessionModal = document.getElementById('sessionModal');
+            const chatContainer = document.getElementById('chatContainer');
+            const sessionAction = document.getElementById('sessionAction');
+            const sessionIdGroup = document.getElementById('sessionIdGroup');
+            const sessionIdInput = document.getElementById('sessionId');
+            const usernameInput = document.getElementById('username');
+            const startSessionBtn = document.getElementById('startSessionBtn');
+            const randomSessionBtn = document.getElementById('randomSessionBtn');
+            const sessionIdDisplay = document.getElementById('sessionIdDisplay');
+            const copySessionIdBtn = document.getElementById('copySessionIdBtn');
+            const leaveSessionBtn = document.getElementById('leaveSessionBtn');
+            const messageInput = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendButton');
+            const messagesContainer = document.getElementById('messagesContainer');
+            const emptyState = document.getElementById('emptyState');
+            const statusIndicator = document.getElementById('statusIndicator');
+            const statusText = document.getElementById('statusText');
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notificationText');
+            const typingIndicator = document.getElementById('typingIndicator');
+            const typingUser = document.getElementById('typingUser');
+            const userAvatar = document.getElementById('userAvatar');
+            const usernameDisplay = document.getElementById('usernameDisplay');
+            const userList = document.getElementById('userList');
+            const userCount = document.getElementById('userCount');
+            const toggleSidebar = document.getElementById('toggleSidebar');
+            const sidebar = document.getElementById('sidebar');
+            const mobileMenuButton = document.getElementById('mobileMenuButton');
+            const chatTitle = document.getElementById('chatTitle');
+            const chatDescription = document.getElementById('chatDescription');
+            
+            let currentUser = {
+                name: "Pengguna",
+                color: getRandomColor(),
+                isTyping: false,
+                lastTypingTime: 0,
+                sessionId: null
+            };
+            
+            let currentSession = {
+                id: null,
+                name: null,
+                messagesRef: null,
+                usersRef: null,
+                typingRef: null
+            };
+            
+            // Referensi database
+            let messagesRef, usersRef, typingRef;
+            
+            function getRandomColor() {
+                const colors = [
+                    '#2575fc', '#6a11cb', '#ff7e5f', '#feb47b', 
+                    '#2ed573', '#ff4757', '#3742fa', '#ff6b81'
+                ];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+            
+            function adjustColor(color, amount) {
+                const clamp = (val) => Math.min(255, Math.max(0, val));
+                const hex = color.replace(/^#/, '');
+                const r = clamp(parseInt(hex.substr(0, 2), 16) + amount);
+                const g = clamp(parseInt(hex.substr(2, 2), 16) + amount);
+                const b = clamp(parseInt(hex.substr(4, 2), 16) + amount);
+                return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+            }
+            
+            function generateSessionId() {
+                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                let result = '';
+                for (let i = 0; i < 6; i++) {
+                    result += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                return result;
+            }
+            
+            // Tampilkan notifikasi
+            function showNotification(message, type = 'success') {
+                notificationText.textContent = message;
+                notification.className = 'notification';
+                notification.classList.add(type);
+                notification.classList.add('show');
+                
+                const icon = notification.querySelector('i');
+                if (type === 'error') {
+                    icon.className = 'fas fa-exclamation-circle';
+                } else if (type === 'info') {
+                    icon.className = 'fas fa-info-circle';
+                } else {
+                    icon.className = 'fas fa-check-circle';
+                }
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+            
+            function updateConnectionStatus() {
+                const connectedRef = database.ref(".info/connected");
+                connectedRef.on("value", function(snap) {
+                    if (snap.val() === true) {
+                        statusIndicator.classList.add('connected');
+                        statusText.textContent = "Connected to Server";
+                        
+                        if (currentSession.usersRef) {
+                            const userOnlineRef = currentSession.usersRef.child(currentUser.name);
+                            userOnlineRef.set({
+                                name: currentUser.name,
+                                color: currentUser.color,
+                                lastActive: Date.now(),
+                                joinedAt: Date.now()
+                            });
+                            
+                            userOnlineRef.onDisconnect().remove();
+                        }
+                    } else {
+                        statusIndicator.classList.remove('connected');
+                        statusText.textContent = "Terputus";
+                    }
+                });
+            }
+            
+            // Format waktu
+            function formatTime(timestamp) {
+                const date = new Date(timestamp);
+                const now = new Date();
+                const diffMs = now - date;
+                const diffMins = Math.floor(diffMs / 60000);
+                
+                if (diffMins < 1) return 'Baru saja';
+                if (diffMins < 60) return `${diffMins} menit lalu`;
+                
+                return date.toLocaleTimeString('id-ID', { 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    hour12: false
+                });
+            }
+            
+            // Tambahkan pesan ke UI
+            function addMessageToUI(messageData, isSentByCurrentUser = false) {
+                emptyState.style.display = 'none';
+                
+                const messageElement = document.createElement('div');
+                messageElement.className = `message ${isSentByCurrentUser ? 'sent' : 'received'}`;
+                
+                const avatarInitial = messageData.sender.charAt(0).toUpperCase();
+                const avatarColor = messageData.color || getRandomColor();
+                
+                messageElement.innerHTML = `
+                    <div class="message-avatar" style="background: linear-gradient(to right, ${avatarColor}, ${adjustColor(avatarColor, 20)});">${avatarInitial}</div>
+                    <div class="message-content">
+                        <div class="message-sender">${messageData.sender}</div>
+                        <div class="message-text">${messageData.text}</div>
+                        <div class="message-time">${formatTime(messageData.timestamp)}</div>
+                    </div>
+                `;
+                
+                messagesContainer.appendChild(messageElement);
+                scrollToBottom();
+            }
+            
+            // Load pesan dari Firebase
+            function loadMessages() {
+                if (!currentSession.messagesRef) return;
+                
+                // Batasi hanya 50 pesan terakhir
+                currentSession.messagesRef.limitToLast(50).on('child_added', function(snapshot) {
+                    const messageData = snapshot.val();
+                    const isSentByCurrentUser = messageData.sender === currentUser.name;
+                    addMessageToUI(messageData, isSentByCurrentUser);
+                });
+            }
+            
+            // Load users dari Firebase
+            function loadUsers() {
+                if (!currentSession.usersRef) return;
+                
+                currentSession.usersRef.on('value', function(snapshot) {
+                    userList.innerHTML = '<li><span class="status-dot"></span> Anda</li>';
+                    const users = snapshot.val();
+                    let userCountValue = 1; // Mulai dengan 1 untuk diri sendiri
+                    
+                    if (users) {
+                        Object.keys(users).forEach(userName => {
+                            if (userName !== currentUser.name) {
+                                userCountValue++;
+                                const user = users[userName];
+                                
+                                const userItem = document.createElement('li');
+                                userItem.innerHTML = `
+                                    <span class="status-dot"></span> 
+                                    ${userName}
+                                `;
+                                userList.appendChild(userItem);
+                            }
+                        });
+                    }
+                    
+                    userCount.textContent = userCountValue;
+                    chatDescription.textContent = `Sesi dengan ${userCountValue} pengguna`;
+                });
+            }
+            
+            // Setup deteksi mengetik
+            function setupTypingDetection() {
+                if (!currentSession.typingRef) return;
+                
+                let typingTimeout;
+                
+                // Deteksi pengguna lain yang sedang mengetik
+                currentSession.typingRef.on('child_added', function(snapshot) {
+                    const typingData = snapshot.val();
+                    if (typingData.name !== currentUser.name) {
+                        typingUser.textContent = typingData.name;
+                        typingIndicator.style.display = 'flex';
+                        scrollToBottom();
+                    }
+                });
+                
+                currentSession.typingRef.on('child_removed', function(snapshot) {
+                    const typingData = snapshot.val();
+                    if (typingData && typingData.name !== currentUser.name) {
+                        typingIndicator.style.display = 'none';
+                    } else {
+                        currentSession.typingRef.once('value', function(snap) {
+                            let someoneTyping = false;
+                            snap.forEach(function(childSnap) {
+                                if (childSnap.val().name !== currentUser.name) {
+                                    someoneTyping = true;
+                                    typingUser.textContent = childSnap.val().name;
+                                }
+                            });
+                            
+                            if (!someoneTyping) {
+                                typingIndicator.style.display = 'none';
+                            }
+                        });
+                    }
+                });
+                
+                // Fungsi untuk update status mengetik
+                function updateTypingStatus() {
+                    if (!currentUser.isTyping) {
+                        currentUser.isTyping = true;
+                        currentSession.typingRef.child(currentUser.name).set({
+                            name: currentUser.name,
+                            timestamp: Date.now()
+                        });
+                    }
+                    
+                    currentUser.lastTypingTime = Date.now();
+                    
+                    clearTimeout(typingTimeout);
+                    typingTimeout = setTimeout(() => {
+                        if (Date.now() - currentUser.lastTypingTime > 3000) {
+                            stopTyping();
+                        }
+                    }, 3000);
+                }
+                
+                // Berhenti mengetik
+                function stopTyping() {
+                    if (currentUser.isTyping) {
+                        currentSession.typingRef.child(currentUser.name).remove();
+                        currentUser.isTyping = false;
+                    }
+                }
+                
+                // Event listeners untuk input
+                messageInput.addEventListener('input', updateTypingStatus);
+                messageInput.addEventListener('blur', function() {
+                    setTimeout(stopTyping, 1000);
+                });
+                
+                // Ekspos fungsi stopTyping untuk digunakan di tempat lain
+                window.stopTyping = stopTyping;
+            }
+            
+            // Kirim pesan
+            function sendMessage() {
+                const messageText = messageInput.value.trim();
+                
+                if (messageText === '') {
+                    showNotification("Silakan ketik pesan terlebih dahulu!", 'error');
+                    return;
+                }
+                
+                if (!currentSession.messagesRef) {
+                    showNotification("Anda belum bergabung ke sesi chat!", 'error');
+                    return;
+                }
+                
+                // Buat pesan
+                const message = {
+                    text: messageText,
+                    sender: currentUser.name,
+                    timestamp: Date.now(),
+                    color: currentUser.color
+                };
+                
+                // Kirim ke Firebase
+                currentSession.messagesRef.push(message)
+                    .then(() => {
+                        messageInput.value = '';
+                        messageInput.focus();
+                        
+                        // Hentikan status mengetik
+                        if (window.stopTyping) window.stopTyping();
+                    })
+                    .catch((error) => {
+                        console.error("Error mengirim pesan: ", error);
+                        showNotification("Gagal mengirim pesan!", 'error');
+                    });
+            }
+            
+            // Scroll ke bagian bawah chat
+            function scrollToBottom() {
+                setTimeout(() => {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }, 100);
+            }
+            
+            // Join atau buat sesi
+            function startSession() {
+                const username = usernameInput.value.trim();
+                const action = sessionAction.value;
+                let sessionId = sessionIdInput.value.trim().toUpperCase();
+                
+                if (username === '') {
+                    showNotification("Silakan masukkan nama pengguna!", 'error');
+                    return;
+                }
+                
+                // Set user info
+                currentUser.name = username;
+                currentUser.color = getRandomColor();
+                userAvatar.textContent = currentUser.name.charAt(0).toUpperCase();
+                userAvatar.style.background = `linear-gradient(to right, ${currentUser.color}, ${adjustColor(currentUser.color, 20)})`;
+                usernameDisplay.textContent = currentUser.name;
+                
+                // Generate atau validasi session ID
+                if (action === 'create') {
+                    sessionId = generateSessionId();
+                } else if (action === 'join') {
+                    if (sessionId === '') {
+                        showNotification("Silakan masukkan ID sesi!", 'error');
+                        return;
+                    }
+                    
+                    // Validasi format session ID
+                    if (!/^[A-Z0-9]{4,8}$/.test(sessionId)) {
+                        showNotification("ID sesi harus 4-8 karakter huruf/angka!", 'error');
+                        return;
+                    }
+                }
+                
+                // Set current session
+                currentSession.id = sessionId;
+                currentSession.name = `Sesi ${sessionId}`;
+                
+                // Set referensi Firebase untuk sesi ini
+                const sessionPath = `sessions/${sessionId}`;
+                currentSession.messagesRef = database.ref(`${sessionPath}/messages`);
+                currentSession.usersRef = database.ref(`${sessionPath}/users`);
+                currentSession.typingRef = database.ref(`${sessionPath}/typing`);
+                
+                messagesRef = currentSession.messagesRef;
+                usersRef = currentSession.usersRef;
+                typingRef = currentSession.typingRef;
+                
+                // Update UI
+                sessionIdDisplay.textContent = sessionId;
+                chatTitle.textContent = `Sesi: ${sessionId}`;
+                
+                // Sembunyikan modal dan tampilkan chat
+                sessionModal.classList.add('hidden');
+                chatContainer.style.display = 'flex';
+                
+                // Setup Firebase listeners
+                updateConnectionStatus();
+                loadMessages();
+                loadUsers();
+                setupTypingDetection();
+                
+                // Auto-focus pada input pesan
+                setTimeout(() => {
+                    messageInput.focus();
+                }, 300);
+                
+                // Tampilkan notifikasi
+                const actionText = action === 'create' ? 'dibuat' : 'digabung';
+                showNotification(`Berhasil ${actionText} sesi ${sessionId}!`, 'info');
+                
+                // Simpan sesi di URL untuk sharing
+                const url = new URL(window.location);
+                url.hash = sessionId;
+                window.history.replaceState({}, '', url);
+            }
+            
+            // Join sesi acak
+            function joinRandomSession() {
+                const username = usernameInput.value.trim();
+                if (username === '') {
+                    showNotification("Silakan masukkan nama pengguna!", 'error');
+                    return;
+                }
+                
+                // Generate session ID acak
+                const randomSessionId = generateSessionId();
+                sessionAction.value = 'join';
+                sessionIdInput.value = randomSessionId;
+                
+                // Tampilkan info
+                showNotification(`Bergabung ke sesi acak: ${randomSessionId}`, 'info');
+                
+                // Mulai sesi
+                setTimeout(() => {
+                    startSession();
+                }, 500);
+            }
+            
+            // Salin session ID
+            function copySessionId() {
+                const sessionId = sessionIdDisplay.textContent;
+                
+                // Fallback untuk browser yang tidak mendukung clipboard API
+                if (!navigator.clipboard) {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = sessionId;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    showNotification("ID sesi berhasil disalin!", 'info');
+                    return;
+                }
+                
+                navigator.clipboard.writeText(sessionId)
+                    .then(() => {
+                        showNotification("ID sesi berhasil disalin!", 'info');
+                    })
+                    .catch(err => {
+                        console.error('Gagal menyalin: ', err);
+                        showNotification("Gagal menyalin ID sesi", 'error');
+                    });
+            }
+            
+            // Keluar dari sesi
+            function leaveSession() {
+                if (confirm("Apakah Anda yakin ingin keluar dari sesi ini?")) {
+                    // Hapus user dari daftar online
+                    if (currentSession.usersRef) {
+                        currentSession.usersRef.child(currentUser.name).remove();
+                    }
+                    
+                    // Reset state
+                    currentSession.id = null;
+                    currentSession.messagesRef = null;
+                    currentSession.usersRef = null;
+                    currentSession.typingRef = null;
+                    
+                    // Reset UI
+                    messagesContainer.innerHTML = '';
+                    emptyState.style.display = 'flex';
+                    messagesContainer.appendChild(emptyState);
+                    
+                    // Tampilkan modal lagi
+                    sessionModal.classList.remove('hidden');
+                    chatContainer.style.display = 'none';
+                    
+                    // Hapus hash dari URL
+                    const url = new URL(window.location);
+                    url.hash = '';
+                    window.history.replaceState({}, '', url);
+                    
+                    showNotification("Anda telah keluar dari sesi", 'info');
+                }
+            }
+            
+            // Toggle sidebar di mobile
+            function toggleSidebarMobile() {
+                sidebar.classList.toggle('collapsed');
+                const icon = toggleSidebar.querySelector('i');
+                if (sidebar.classList.contains('collapsed')) {
+                    icon.className = 'fas fa-chevron-right';
+                } else {
+                    icon.className = 'fas fa-chevron-left';
+                }
+            }
+            
+            // Close sidebar ketika klik di luar (mobile)
+            function setupSidebarCloseOnClickOutside() {
+                document.addEventListener('click', function(event) {
+                    const isClickInsideSidebar = sidebar.contains(event.target);
+                    const isClickOnMobileMenu = mobileMenuButton.contains(event.target);
+                    const isClickOnToggle = toggleSidebar.contains(event.target);
+                    
+                    if (!sidebar.classList.contains('collapsed') && 
+                        !isClickInsideSidebar && 
+                        !isClickOnMobileMenu && 
+                        !isClickOnToggle &&
+                        window.innerWidth <= 767) {
+                        sidebar.classList.add('collapsed');
+                        toggleSidebar.querySelector('i').className = 'fas fa-chevron-right';
+                    }
+                });
+            }
+            
+            // Handle resize untuk menyesuaikan sidebar
+            function handleResize() {
+                if (window.innerWidth > 767) {
+                    sidebar.classList.remove('collapsed');
+                } else {
+                    sidebar.classList.add('collapsed');
+                }
+            }
+            
+            // Event Listeners
+            sessionAction.addEventListener('change', function() {
+                if (this.value === 'create') {
+                    sessionIdGroup.style.display = 'none';
+                } else {
+                    sessionIdGroup.style.display = 'block';
+                }
+            });
+            
+            startSessionBtn.addEventListener('click', startSession);
+            randomSessionBtn.addEventListener('click', joinRandomSession);
+            copySessionIdBtn.addEventListener('click', copySessionId);
+            leaveSessionBtn.addEventListener('click', leaveSession);
+            sendButton.addEventListener('click', sendMessage);
+            mobileMenuButton.addEventListener('click', toggleSidebarMobile);
+            toggleSidebar.addEventListener('click', toggleSidebarMobile);
+            
+            messageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            // Cek jika ada session ID di URL hash
+            window.addEventListener('load', function() {
+                const hash = window.location.hash.substring(1);
+                if (hash && /^[A-Z0-9]{4,8}$/.test(hash)) {
+                    sessionAction.value = 'join';
+                    sessionIdInput.value = hash;
+                    sessionIdGroup.style.display = 'block';
+                    
+                    // Auto-focus pada username
+                    setTimeout(() => {
+                        usernameInput.focus();
+                        usernameInput.select();
+                    }, 100);
+                }
+            });
+            
+            // Setup event listener untuk resize
+            window.addEventListener('resize', handleResize);
+            
+            // Setup sidebar close on click outside
+            setupSidebarCloseOnClickOutside();
+            
+            // Handle virtual keyboard on mobile
+            if ('visualViewport' in window) {
+                const visualViewport = window.visualViewport;
+                visualViewport.addEventListener('resize', function() {
+                    scrollToBottom();
+                });
+            }
+            
+            // Inisialisasi
+            sessionIdGroup.style.display = 'none';
+            handleResize(); // Set initial sidebar state
+            
+            // Prevent zoom on mobile for input fields
+            document.addEventListener('touchstart', function(event) {
+                if (event.target.matches('input, textarea, select')) {
+                    event.target.style.fontSize = '16px';
+                }
+            });
+            
+            document.addEventListener('touchend', function(event) {
+                if (event.target.matches('input, textarea, select')) {
+                    setTimeout(() => {
+                        event.target.style.fontSize = '';
+                    }, 100);
+                }
+            });
         });
     </script>
 </body>
