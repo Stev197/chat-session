@@ -1249,8 +1249,8 @@
             <button class="modal-close-btn" id="modalCloseBtn">
                 <i class="fas fa-times"></i>
             </button>
-            <h2>Chat Session</h2>
-            <p>Mulai percakapan dengan membuat sesi baru atau bergabung dengan sesi yang sudah ada</p>
+            <h2>Session Anonymous</h2>
+            <p>Mulai percakapan dengan  session tanpa login account  </p>
             
             <div class="form-group">
                 <label for="username">Nama Pengguna</label>
@@ -1577,7 +1577,7 @@
                 connectedRef.on("value", function(snap) {
                     if (snap.val() === true) {
                         statusIndicator.classList.add('connected');
-                        statusText.textContent = "Terhubung";
+                        statusText.textContent = "Connected To Server";
                         
                         // Simpan user online di sesi saat ini
                         if (currentSession.usersRef) {
@@ -1594,7 +1594,7 @@
                         }
                     } else {
                         statusIndicator.classList.remove('connected');
-                        statusText.textContent = "Terputus";
+                        statusText.textContent = "Disconnected From Server";
                     }
                 });
             }
@@ -2575,3 +2575,4 @@
     </script>
 </body>
 </html>
+
